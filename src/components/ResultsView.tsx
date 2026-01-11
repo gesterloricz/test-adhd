@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { RefreshCw, ChevronRight, ChevronDown, AlertTriangle, FileText } from "lucide-react"
 import type { ClassificationResult } from "../App"
@@ -7,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Progress } from "@/components/ui/progress"
+import {Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 
 type Props = {

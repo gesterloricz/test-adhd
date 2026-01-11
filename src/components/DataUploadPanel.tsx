@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState } from "react"
 import { Upload } from "lucide-react"
@@ -13,29 +11,13 @@ type Props = {
 }
 
 const CHANNELS = [
-  "Fz",
-  "Cz",
-  "Pz",
-  "C3",
-  "T3",
-  "C4",
-  "T4",
-  "Fp1",
-  "Fp2",
-  "F3",
-  "F4",
-  "F7",
-  "F8",
-  "P3",
-  "P4",
-  "T5",
-  "T6",
-  "O1",
-  "O2",
+  "Fz", "Cz", "Pz", "C3", "T3", "C4", "T4", "Fp1", "Fp2", 
+  "F3", "F4", "F7", "F8", "P3", "P4", "T5", "T6", "O1", "O2",
 ]
 
 export default function DataUploadPanel({ onFilesProcessed }: Props) {
   const [isDragging, setIsDragging] = useState(false)
+  const [batchUploadEnabled, setBatchUploadEnabled] = useState(true)
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -67,9 +49,7 @@ export default function DataUploadPanel({ onFilesProcessed }: Props) {
       result: index % 2 === 0 ? "ADHD Detected" : "Control (No ADHD)",
       confidence: 87 + Math.random() * 10,
       topFeatures: [
-        { name: "Beta Power (C4)", value: 26.2 },
-        { name: "Wavelet Energy (Fp2)", value: 20.1 },
-        { name: "Fractal Dim (F4)", value: 14.9 },
+        
       ],
     }))
 
@@ -86,12 +66,27 @@ export default function DataUploadPanel({ onFilesProcessed }: Props) {
             <Upload className="h-5 w-5 text-muted-foreground" />
             <CardTitle>Data Upload Panel</CardTitle>
           </div>
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-            Batch Upload Enabled
+          <Badge
+            variant="outline"
+            className={`cursor-pointer transition-colors ${
+              batchUploadEnabled
+                ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+            }`}
+            onClick={() => setBatchUploadEnabled(!batchUploadEnabled)}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full mr-1.5 ${batchUploadEnabled ? "bg-green-500" : "bg-gray-400"}`}
+            ></span>
+            Batch Upload {batchUploadEnabled ? "Enabled" : "Disabled"}
           </Badge>
         </div>
-        <CardDescription>Upload multiple EEG dataset files for batch ADHD classification</CardDescription>
+        {/* Dynamic Description based on state */}
+        <CardDescription>
+          {batchUploadEnabled 
+            ? "Upload multiple EEG dataset files for batch ADHD classification"
+            : "Upload a single EEG dataset file for detailed ADHD classification"}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div
@@ -109,13 +104,25 @@ export default function DataUploadPanel({ onFilesProcessed }: Props) {
               <Upload className="h-8 w-8 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-base font-medium text-foreground mb-1">Drop multiple EEG files here or browse</p>
-              <p className="text-sm text-muted-foreground">Supports .XML / .CSV / .MAT formats • Batch processing</p>
+              <p className="text-base font-medium text-foreground mb-1">
+                Drop {batchUploadEnabled ? "multiple" : "single"} EEG {batchUploadEnabled ? "files" : "file"} here or
+                browse
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Supports .XML / .CSV / .MAT formats{" "}
+                {batchUploadEnabled ? "• Batch processing" : "• Single file processing"}
+              </p>
             </div>
             <Button variant="outline" asChild>
               <label className="cursor-pointer">
                 Browse Files
-                <input type="file" multiple accept=".xml,.csv,.mat" onChange={handleFileInput} className="hidden" />
+                <input
+                  type="file"
+                  multiple={batchUploadEnabled}
+                  accept=".xml,.csv,.mat"
+                  onChange={handleFileInput}
+                  className="hidden"
+                />
               </label>
             </Button>
           </div>

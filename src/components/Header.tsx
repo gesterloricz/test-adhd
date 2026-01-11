@@ -10,9 +10,9 @@ export default function Header() {
           </div>
           <div>
             <h1 className="text-xl font-semibold leading-tight">
-              Enhanced XGBoost with SVM for Robust EEG-Based ADHD Classification
+              ADHD Classification
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">Hybrid Ensemble Learning Prototype Interface</p>
+            <p className="text-sm text-muted-foreground mt-1">Prototype Interface</p>
           </div>
         </div>
       </div>

@@ -7,7 +7,7 @@ export default function SystemInfoPanel() {
     {
       icon: Settings,
       label: "Model Framework",
-      value: "XGBoost + SVM (Stacking Ensemble)",
+      value: "XGBoost)",
     },
     {
       icon: Database,
@@ -17,7 +17,7 @@ export default function SystemInfoPanel() {
     {
       icon: Cog,
       label: "Preprocessing",
-      value: "Band-pass (0.5–40Hz), ASR, ICA",
+      value: "",
     },
     {
       icon: BarChart3,
@@ -61,8 +61,7 @@ export default function SystemInfoPanel() {
         <Separator />
 
         <p className="text-xs text-muted-foreground leading-relaxed">
-          This prototype demonstrates the feasibility of using hybrid ensemble learning for EEG-based ADHD
-          classification with explainable AI through SHAP analysis.
+          Prototype Description
         </p>
       </CardContent>
     </Card>
