@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Header from './components/Header'
 import SystemInfoPanel from './components/SystemInfoPanel'
 import DataUploadPanel from './components/DataUploadPanel'
+import ProcessingStatusPanel from './components/processingStatus'
 import ResultsView from './components/ResultsView'
 
 export type ClassificationResult = {
@@ -16,13 +17,44 @@ export type ClassificationResult = {
 
 function App() {
   const [results, setResults] = useState<ClassificationResult[]>([])
+  const [files, setFiles] = useState<File[]>([])
+  const [isProcessing, setIsProcessing] = useState(false)
 
-  const handleFilesProcessed = (newResults: ClassificationResult[]) => {
-    setResults(newResults)
+  // 1. Updates the file queue when user drops files or deletes them
+  const handleFilesSelected = (newFiles: File[]) => {
+    setFiles(newFiles)
   }
 
+  // 2. Switches to the processing view
+  const handleStartProcessing = () => {
+    if (files.length === 0) return
+    setIsProcessing(true)
+  }
+
+  // 3. Called when ProcessingStatusPanel finishes its animation
+  const handleProcessingComplete = () => {
+    // Generate results for the files that were in the queue
+    const newResults: ClassificationResult[] = files.map((file, index) => ({
+      filename: file.name,
+      result: index % 2 === 0 ? "ADHD Detected" : "Control (No ADHD)",
+      confidence: 87 + Math.random() * 10,
+      topFeatures: [
+        { name: "Beta Power (C4)", value: 26.2 },
+        { name: "Wavelet Energy (Fp2)", value: 20.1 },
+        { name: "Fractal Dim (F4)", value: 14.9 },
+      ],
+    }))
+
+    setResults(newResults)
+    setIsProcessing(false)
+    setFiles([]) // Clear the queue after processing is done
+  }
+
+  // 4. Resets everything for a fresh start
   const handleNewAnalysis = () => {
     setResults([])
+    setFiles([])
+    setIsProcessing(false)
   }
 
   return (
@@ -34,10 +66,19 @@ function App() {
             <SystemInfoPanel />
           </div>
           <div className="lg:col-span-2 space-y-6">
-            {results.length === 0 ? (
-              <DataUploadPanel onFilesProcessed={handleFilesProcessed} />
-            ) : (
+            {isProcessing ? (
+              // Show Status Panel while processing
+              <ProcessingStatusPanel onComplete={handleProcessingComplete} />
+            ) : results.length > 0 ? (
+              // Show Results if processing is done
               <ResultsView results={results} onNewAnalysis={handleNewAnalysis} />
+            ) : (
+              // Otherwise show Upload Panel
+              <DataUploadPanel 
+                files={files} 
+                onFilesSelected={handleFilesSelected} 
+                onStartProcessing={handleStartProcessing} 
+              />
             )}
           </div>
         </div>

@@ -7,7 +7,7 @@ export default function SystemInfoPanel() {
     {
       icon: Settings,
       label: "Model Framework",
-      value: "XGBoost)",
+      value: "XGBoost",
     },
     {
       icon: Database,
@@ -17,17 +17,17 @@ export default function SystemInfoPanel() {
     {
       icon: Cog,
       label: "Preprocessing",
-      value: "",
+      value: "?????",
     },
     {
       icon: BarChart3,
       label: "Features",
-      value: "Statistical, Spectral, Time–Frequency, Nonlinear",
+      value: "?????",
     },
     {
       icon: TrendingUp,
       label: "Evaluation Metrics",
-      value: "Accuracy, Precision, Recall, F1-Score",
+      value: "Accuracy, Precision, Recall, F1-Score, AUROC",
     },
   ]
 
@@ -61,7 +61,7 @@ export default function SystemInfoPanel() {
         <Separator />
 
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Prototype Description
+          Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
         </p>
       </CardContent>
     </Card>
