@@ -164,7 +164,7 @@ export default function DataUploadPanel({ onFilesSelected, onStartProcessing, fi
         </div>
       </Card>
 
-      {/* Uploaded Files List */}
+      {/* uploaded file */}
       {files.length > 0 && (
         <Card className="p-6 bg-card border-border">
           <div className="flex items-center justify-between mb-4">

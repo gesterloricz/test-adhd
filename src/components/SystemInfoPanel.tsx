@@ -12,22 +12,22 @@ export default function SystemInfoPanel() {
     {
       icon: Database,
       label: "Dataset Source",
-      value: "IEEE Dataport EEG ADHD Dataset",
+      value: "IEEE Dataport EEG ADHD & HBN Dataset",
     },
     {
       icon: Cog,
       label: "Preprocessing",
-      value: "?????",
+      value: "Band-pass filter, ASR, ICA",
     },
     {
       icon: BarChart3,
       label: "Features",
-      value: "?????",
+      value: "Statistical, Spectral, & Nonlinear Entropy",
     },
     {
       icon: TrendingUp,
       label: "Evaluation Metrics",
-      value: "Accuracy, Precision, Recall, F1-Score, AUROC",
+      value: "Accuracy, Precision, Recall, F1-Score, AUC-ROC",
     },
   ]
 

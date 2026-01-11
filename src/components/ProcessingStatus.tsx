@@ -6,13 +6,13 @@ const processingSteps = [
   {
     id: 1,
     name: "Preprocessing",
-    description: "??????",
+    description: "Band-pass filter, ASR, & ICA",
     duration: 1200,
   },
   {
     id: 2,
     name: "Feature Extraction",
-    description: "??????",
+    description: "Statistical, Spectral, & Nonlinear Entropy",
     duration: 1500,
   },
   {
