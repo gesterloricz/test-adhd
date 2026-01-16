@@ -5,32 +5,32 @@ import { Loader2, CheckCircle2, Circle } from "lucide-react"
 const processingSteps = [
   {
     id: 1,
-    name: "Preprocessing",
-    description: "Band-pass filter, ASR, & ICA",
+    name: "Preprocessing", 
+    description: "Band-pass Filter & Sub-band Decomposition", 
     duration: 1200,
   },
   {
     id: 2,
     name: "Feature Extraction",
-    description: "Statistical, Spectral, & Nonlinear Entropy",
+    description: "Power Spectral Density & Spectral Entropy",
     duration: 1500,
   },
   {
     id: 3,
-    name: "Feature Selection",
-    description: "??????",
+    name: "Normalization", 
+    description: "Z-score Feature Scaling", 
     duration: 1000,
   },
   {
     id: 4,
     name: "Classification",
-    description: "XGBoost Model",
+    description: "Optimized XGBoost (DART + IBL)", 
     duration: 1300,
   },
   {
     id: 5,
     name: "Result Generation",
-    description: "ADHD / Non-ADHD",
+    description: "ADHD / Control Prediction",
     duration: 1000,
   },
 ]
@@ -85,7 +85,7 @@ export default function ProcessingStatusPanel({ onComplete }: Props) {
               `}
             >
               <div className="flex-shrink-0 w-8 text-center">
-                {isComplete && <CheckCircle2 className="w-6 h-6 text-success mx-auto text-green-500" />}
+                {isComplete && <CheckCircle2 className="w-6 h-6 text-green-500 mx-auto" />}
                 {isCurrent && <Loader2 className="w-6 h-6 text-primary animate-spin mx-auto" />}
                 {isPending && <Circle className="w-6 h-6 text-muted-foreground mx-auto" />}
               </div>

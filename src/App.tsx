@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import Header from './components/Header'
+import Header from './components/header'
+import Footer from './components/footer'
 import SystemInfoPanel from './components/SystemInfoPanel'
 import DataUploadPanel from './components/DataUploadPanel'
-import ProcessingStatusPanel from './components/processingStatus'
+import ProcessingStatusPanel from './components/ProcessingStatus'
 import ResultsView from './components/ResultsView'
 
 export type ClassificationResult = {
@@ -20,18 +21,18 @@ function App() {
   const [files, setFiles] = useState<File[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
 
-  // 1. Updates the file queue when user drops files or deletes them
+  // Updates the file queue when user drops files or deletes them
   const handleFilesSelected = (newFiles: File[]) => {
     setFiles(newFiles)
   }
 
-  // 2. Switches to the processing view
+  // Switches to the processing view
   const handleStartProcessing = () => {
     if (files.length === 0) return
     setIsProcessing(true)
   }
 
-  // 3. Called when ProcessingStatusPanel finishes its animation
+  // Called when processing status finishes its animation
   const handleProcessingComplete = () => {
     // Generate results for the files that were in the queue
     const newResults: ClassificationResult[] = files.map((file, index) => ({
@@ -39,9 +40,9 @@ function App() {
       result: index % 2 === 0 ? "ADHD Detected" : "Control (No ADHD)",
       confidence: 87 + Math.random() * 10,
       topFeatures: [
-        { name: "Beta Power (C4)", value: 26.2 },
-        { name: "Wavelet Energy (Fp2)", value: 20.1 },
-        { name: "Fractal Dim (F4)", value: 14.9 },
+        { name: "Beta PSD (Cz)", value: 26.2 },
+        { name: "Theta Entropy (Fz)", value: 20.1 },
+        { name: "Alpha PSD (P3)", value: 14.9 },
       ],
     }))
 
@@ -50,7 +51,7 @@ function App() {
     setFiles([]) // Clear the queue after processing is done
   }
 
-  // 4. Resets everything for a fresh start
+  // Resets everything for a fresh start
   const handleNewAnalysis = () => {
     setResults([])
     setFiles([])
@@ -83,6 +84,7 @@ function App() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

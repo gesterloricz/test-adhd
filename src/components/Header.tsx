@@ -12,7 +12,17 @@ export default function Header() {
             <h1 className="text-xl font-semibold leading-tight">
               ADHD Classification
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">Prototype Interface</p>
+            <p className="text-sm text-muted-foreground mt-1">Optimized XGBoost with DART & IBL</p>
+          </div>
+          <div className="ml-auto text-right">
+            <div className="flex flex-wrap justify-end gap-x-2 text-xs font-medium">
+              <span>Abunda, K.</span>
+              <span>•</span>
+              <span>Gerona, R.</span>
+              <span>•</span>
+              <span>Lorica, G.</span>
+            </div>
+            <p className="text-[10px] mt-1 text-muted-foreground">Adviser: Fe B. Yara, MSIS</p>
           </div>
         </div>
       </div>

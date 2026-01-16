@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { CheckCircle2, AlertTriangle, RotateCcw, TrendingUp, FileText, ChevronRight } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,14 +11,8 @@ interface ResultsViewProps {
 }
 
 export default function ResultsView({ onNewAnalysis, results }: ResultsViewProps) {
+
   const [selectedResult, setSelectedResult] = useState<ClassificationResult | null>(null)
-
-  useEffect(() => {
-    if (results.length > 0) {
-      setSelectedResult(results[0])
-    }
-  }, [results])
-
   const adhdCount = results.filter((r) => r.result === "ADHD Detected").length
   const controlCount = results.filter((r) => r.result === "Control (No ADHD)").length
 
@@ -62,11 +56,10 @@ export default function ResultsView({ onNewAnalysis, results }: ResultsViewProps
               <button
                 key={idx}
                 onClick={() => setSelectedResult(result)}
-                className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                  isSelected
+                className={`w-full p-4 rounded-lg border-2 transition-all text-left ${isSelected
                     ? "bg-primary/5 border-primary"
                     : "bg-card border-border hover:border-primary/50"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -80,11 +73,10 @@ export default function ResultsView({ onNewAnalysis, results }: ResultsViewProps
                   </div>
                   <div className="flex items-center gap-3">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        isADHD
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${isADHD
                           ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
                           : "bg-green-100 text-green-700 border border-green-200"
-                      }`}
+                        }`}
                     >
                       {result.result}
                     </span>
@@ -97,20 +89,27 @@ export default function ResultsView({ onNewAnalysis, results }: ResultsViewProps
         </div>
       </div>
 
+      {!selectedResult && (
+        <div className="p-8 text-center bg-muted/20 rounded-lg border border-dashed border-border">
+          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">
+            Select a file from the batch results above to view detailed analysis
+          </p>
+        </div>
+      )}
+
       {selectedResult && (
         <>
           <div
-            className={`p-6 rounded-lg border-2 mb-6 ${
-              selectedResult.result === "ADHD Detected"
+            className={`p-6 rounded-lg border-2 mb-6 ${selectedResult.result === "ADHD Detected"
                 ? "bg-yellow-50/50 border-yellow-100"
                 : "bg-green-50/50 border-green-100"
-            }`}
+              }`}
           >
             <div className="flex items-start gap-4">
               <div
-                className={`p-3 rounded-full ${
-                  selectedResult.result === "ADHD Detected" ? "bg-yellow-100" : "bg-green-100"
-                }`}
+                className={`p-3 rounded-full ${selectedResult.result === "ADHD Detected" ? "bg-yellow-100" : "bg-green-100"
+                  }`}
               >
                 {selectedResult.result === "ADHD Detected" ? (
                   <AlertTriangle className="w-8 h-8 text-yellow-600" />
@@ -133,14 +132,13 @@ export default function ResultsView({ onNewAnalysis, results }: ResultsViewProps
             <h3 className="text-sm font-semibold text-foreground mb-4">Confidence Visualization</h3>
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground">
-                 <span>Certainty ({selectedResult.confidence.toFixed(1)}%)</span>
-                 <span>Uncertainty ({(100 - selectedResult.confidence).toFixed(1)}%)</span>
+                <span>Certainty ({selectedResult.confidence.toFixed(1)}%)</span>
+                <span>Uncertainty ({(100 - selectedResult.confidence).toFixed(1)}%)</span>
               </div>
               <Progress value={selectedResult.confidence} className="h-4" />
             </div>
           </div>
 
-         {/* // result table */}
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg border border-border">
               <div>
@@ -153,7 +151,7 @@ export default function ResultsView({ onNewAnalysis, results }: ResultsViewProps
               </div>
             </div>
 
-            {/* <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg border border-border">
+             <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg border border-border">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Parameter</p>
                 <p className="text-sm font-semibold text-foreground">Top Influential Features</p>
@@ -168,7 +166,7 @@ export default function ResultsView({ onNewAnalysis, results }: ResultsViewProps
                   ))}
                 </div>
               </div>
-            </div> */}
+            </div> 
 
             <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg border border-border">
               <div>
