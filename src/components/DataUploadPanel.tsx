@@ -78,7 +78,7 @@ export default function DataUploadPanel({ onFilesSelected, onStartProcessing, fi
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
               <Upload className="w-5 h-5 text-primary" />
-              Data Upload Panel
+              Data Upload
             </h2>
             <Badge
                 variant="outline"

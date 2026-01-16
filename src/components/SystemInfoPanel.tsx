@@ -36,7 +36,7 @@ export default function SystemInfoPanel() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Info className="h-5 w-5 text-muted-foreground" />
-          <CardTitle>System Information Panel</CardTitle>
+          <CardTitle>System Information</CardTitle>
         </div>
         <CardDescription>Model architecture and methodology details</CardDescription>
       </CardHeader>
