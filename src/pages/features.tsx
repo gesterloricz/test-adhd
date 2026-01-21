@@ -52,11 +52,6 @@ export default function Features() {
           </p>
         </div>
 
-        {/* Grid Layout Changes: 
-            - Mobile: 1 column (grid-cols-1)
-            - Tablet: 2 columns (md:grid-cols-2)
-            - Desktop: 3 columns (lg:grid-cols-3) -> Changed from 4 to 3 to fit 6 items perfectly
-        */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
             <Card key={index} className="bg-background border-muted/60 shadow-sm hover:shadow-md transition-shadow">
