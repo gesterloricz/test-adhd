@@ -12,7 +12,7 @@ interface DataUploadPanelProps {
 }
 
 const EEG_CHANNELS = [
-  "Fz", "Cz", "Pz", "C3", "T3", "C4", "T4", "Fp1", "Fp2", 
+  "Fz", "Cz", "Pz", "C3", "T3", "C4", "T4", "Fp1", "Fp2",
   "F3", "F4", "F7", "F8", "P3", "P4", "T5", "T6", "O1", "O2",
 ]
 
@@ -37,7 +37,7 @@ export default function DataUploadPanel({ onFilesSelected, onStartProcessing, fi
       setIsDragging(false)
 
       const droppedFiles = Array.from(e.dataTransfer.files).filter(
-        (file) => file.name.endsWith(".xml") || file.name.endsWith(".csv") || file.name.endsWith(".mat"),
+        (file) => file.name.endsWith(".xml") || file.name.endsWith(".csv") || file.name.endsWith(".mat") || file.name.endsWith(".edf"),
       )
 
       if (droppedFiles.length > 0) {
@@ -72,88 +72,92 @@ export default function DataUploadPanel({ onFilesSelected, onStartProcessing, fi
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="p-6 bg-card border-border">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <Upload className="w-5 h-5 text-primary" />
+    <div className="space-y-6 w-full">
+      <Card className="p-4 sm:p-8 bg-card border-border shadow-sm">
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
+              <div className="p-2.5 bg-primary/10 rounded-lg">
+                <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              </div>
               Data Upload
             </h2>
             <Badge
-                variant="outline"
-                className={`cursor-pointer transition-colors ${
-                  batchUploadEnabled
-                    ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                    : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+              variant="outline"
+              className={`cursor-pointer px-3 py-1.5 text-sm transition-colors w-fit ${batchUploadEnabled
+                ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/50"
+                : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
                 }`}
-                onClick={() => {
-                   setBatchUploadEnabled(!batchUploadEnabled)
-                   if (!batchUploadEnabled === false && files.length > 1) {
-                       // If turning off batch mode, keep only the first file
-                       onFilesSelected([files[0]])
-                   }
-                }}
-              >
-              <Layers className="w-3 h-3 mr-1" />
+              onClick={() => {
+                setBatchUploadEnabled(!batchUploadEnabled)
+                if (!batchUploadEnabled === false && files.length > 1) {
+                  onFilesSelected([files[0]])
+                }
+              }}
+            >
+              <Layers className="w-3.5 h-3.5 mr-1.5" />
               Batch Upload {batchUploadEnabled ? "Enabled" : "Disabled"}
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {batchUploadEnabled 
-              ? "Upload multiple EEG dataset files for batch ADHD classification"
-              : "Upload a single EEG dataset file for detailed ADHD classification"}
+          <p className="text-sm sm:text-base text-muted-foreground">
+            {batchUploadEnabled
+              ? "Upload multiple EEG dataset files for batch ADHD classification analysis."
+              : "Upload a single EEG dataset file for detailed ADHD classification analysis."}
           </p>
         </div>
-
-        {/* upload */}
         <div
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
           className={`
-            border-2 border-dashed rounded-lg p-8 text-center transition-all
-            ${isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/30"}
+            border-2 border-dashed rounded-xl p-6 sm:p-12 text-center transition-all min-h-[300px] sm:min-h-[400px] flex flex-col items-center justify-center cursor-pointer
+            ${isDragging
+              ? "border-primary bg-primary/5 scale-[0.99] shadow-inner"
+              : "border-border hover:border-primary/50 hover:bg-muted/30"
+            }
           `}
+          onClick={() => document.getElementById('file-upload')?.click()}
         >
-          <div className="flex flex-col items-center gap-3">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <Upload className="w-6 h-6 text-primary" />
+          <div className="flex flex-col items-center gap-4 sm:gap-6">
+            <div className={`p-4 sm:p-6 rounded-full transition-all ${isDragging ? 'bg-primary/20' : 'bg-muted'}`}>
+              <Upload className={`w-8 h-8 sm:w-12 sm:h-12 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
             </div>
-            <div>
-              <p className="text-base font-medium text-foreground mb-1">
+            <div className="space-y-2">
+              <p className="text-lg sm:text-xl font-semibold text-foreground">
                 Drop {batchUploadEnabled ? "multiple" : "single"} EEG {batchUploadEnabled ? "files" : "file"} here or browse
               </p>
-              <p className="text-sm text-muted-foreground">Supports .XML / .CSV / .MAT formats • {batchUploadEnabled ? "Batch" : "Single"} processing</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Supports .EDF / .XML / .CSV / .MAT • {batchUploadEnabled ? "Batch" : "Single"} processing
+              </p>
             </div>
             <input
               type="file"
               multiple={batchUploadEnabled}
-              accept=".xml,.csv,.mat"
+              accept=".xml,.csv,.mat,.edf"
               onChange={handleFileInput}
               className="hidden"
               id="file-upload"
             />
-            <label htmlFor="file-upload">
-              <Button variant="outline" className="cursor-pointer bg-transparent" asChild>
-                <span>Browse Files</span>
-              </Button>
-            </label>
+            <Button size="lg" className="mt-2 sm:mt-4 w-full sm:w-auto">
+              Browse Files
+            </Button>
           </div>
         </div>
 
-        {/* Channels Supported */}
-        <div className="mt-6 p-4 bg-accent/5 rounded-lg border border-accent/20">
-          <div className="flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+        <div className="mt-8 p-4 sm:p-6 bg-accent/5 rounded-xl border border-accent/20">
+          <div className="flex flex-col sm:flex-row items-start gap-4">
+            <div className="flex items-center gap-2 mb-2 sm:mb-0">
+                <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-accent mt-0.5 flex-shrink-0" />
+                <span className="font-semibold sm:hidden">Supported Channels:</span>
+            </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-foreground mb-2">Channels Supported (19 channels):</p>
+              <p className="text-base font-semibold text-foreground mb-3 hidden sm:block">Channels Supported (19 channels):</p>
               <div className="flex flex-wrap gap-2">
                 {EEG_CHANNELS.map((channel) => (
                   <span
                     key={channel}
-                    className="px-2 py-1 bg-background text-xs font-mono text-foreground rounded border border-border"
+                    className="px-2 py-1 sm:px-2.5 sm:py-1.5 bg-background text-xs font-mono font-medium text-foreground rounded-md border border-border shadow-sm"
                   >
                     {channel}
                   </span>
@@ -164,53 +168,28 @@ export default function DataUploadPanel({ onFilesSelected, onStartProcessing, fi
         </div>
       </Card>
 
-      {/* uploaded file */}
       {files.length > 0 && (
-        <Card className="p-6 bg-card border-border">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <h3 className="text-lg font-semibold text-foreground">Batch Queue</h3>
-              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/30">
-                {files.length} {files.length === 1 ? "file" : "files"}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearAllFiles}
-                className="text-muted-foreground bg-transparent"
-              >
-                Clear All
-              </Button>
-              <Button onClick={onStartProcessing} className="bg-primary hover:bg-primary/90">
-                Start {batchUploadEnabled ? "Batch" : ""} Classification
-              </Button>
+        <Card className="p-4 sm:p-6 bg-card border-border shadow-sm animate-in fade-in slide-in-from-top-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              Selected Files ({files.length})
+            </h3>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button variant="ghost" size="sm" onClick={clearAllFiles} className="flex-1 sm:flex-none">Clear All</Button>
+              <Button onClick={onStartProcessing} className="flex-1 sm:flex-none">Start Processing</Button>
             </div>
           </div>
-
-          <div className="space-y-2 max-h-[300px] overflow-y-auto">
-            {files.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded text-xs font-semibold text-primary">
-                    {index + 1}
+          <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2">
+            {files.map((file, i) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="w-8 h-8 bg-background rounded flex-shrink-0 flex items-center justify-center text-xs font-bold border">
+                    {i + 1}
                   </div>
-                  <FileText className="w-5 h-5 text-accent" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
-                  </div>
+                  <div className="text-sm font-medium truncate">{file.name}</div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeFile(index)}
-                  className="hover:bg-destructive/10 hover:text-destructive"
-                >
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive flex-shrink-0" onClick={() => removeFile(i)}>
                   <X className="w-4 h-4" />
                 </Button>
               </div>
