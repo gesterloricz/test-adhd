@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import type { ClassificationResult } from "../types"
 
-// Static Data for XGBoost Baseline Results
+// static data for basline results
 const BASELINE_RESULTS_STATIC: ClassificationResult[] = [
- {
+  {
     filename: "sample001.pdf",
     classification: "ADHD Detected",
-    confidence: 92.5, 
+    confidence: 92.5,
     modelUsed: "Standard XGBoost (Baseline)",
-    accuracy: 96.89, 
+    accuracy: 96.89,
     topFeatures: [
       { name: "Theta/Beta Ratio", value: 0.45 },
       { name: "Delta Power", value: 0.32 },
@@ -78,29 +78,28 @@ export default function ResultsView({ onNewAnalysis, results }: ResultsViewProps
   return (
     <div className="w-full space-y-6">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        
-        <ResultColumn 
-          title="Baseline Model" 
+
+        <ResultColumn
+          title="Baseline Model"
           description="Standard XGBoost (n_estimators=100)"
-          icon={<BarChart3 className="w-5 h-5 text-muted-foreground" />}
+          icon={<BarChart3 className="w-5 h-5 text-primary" />}
           results={BASELINE_RESULTS_STATIC}
           isBaseline={true}
         />
 
-        <ResultColumn 
-          title="Proposed Model" 
+        <ResultColumn
+          title="Proposed Model"
           description="Optimized XGBoost (DART + IBL)"
           icon={<BrainCircuit className="w-5 h-5 text-primary" />}
           results={results}
           isBaseline={false}
           onNewAnalysis={onNewAnalysis}
         />
-        
+
       </div>
     </div>
   )
 }
-
 
 interface ResultColumnProps {
   title: string
@@ -111,35 +110,32 @@ interface ResultColumnProps {
   onNewAnalysis?: () => void
 }
 
-function ResultColumn({ title, description, icon, results, isBaseline, onNewAnalysis }: ResultColumnProps) {
+function ResultColumn({ title, description, icon, results, onNewAnalysis }: ResultColumnProps) {
   const [selectedResult, setSelectedResult] = useState<ClassificationResult | null>(null)
-  
+
   const adhdCount = results.filter((r) => r.classification === "ADHD Detected").length
   const controlCount = results.filter((r) => r.classification === "Control (No ADHD)").length
 
   return (
-    <Card className={`flex flex-col h-full border-2 shadow-sm transition-all ${
-      isBaseline ? "bg-muted/10 border-dashed" : "bg-card border-solid border-primary/20"
-    }`}>
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-xl flex items-center gap-2">
-              {icon}
-              {title}
-            </CardTitle>
-            <CardDescription>{description}</CardDescription>
-          </div>
-          {onNewAnalysis && (
-            <Button size="sm" onClick={onNewAnalysis} className="shrink-0">
-              <RotateCcw className="w-4 h-4 mr-2" /> New Analysis
-            </Button>
-          )}
+    <Card className="flex flex-col h-full border-2 shadow-sm transition-all bg-card border-primary/20">
+      <CardHeader className="pb-4 min-h-[88px] flex flex-row items-start justify-between space-y-0">
+        <div className="space-y-1">
+          <CardTitle className="text-xl flex items-center gap-2">
+            {icon}
+            {title}
+          </CardTitle>
+          <CardDescription>{description}</CardDescription>
         </div>
+        {onNewAnalysis ? (
+          <Button size="sm" onClick={onNewAnalysis} className="shrink-0 ml-2">
+            <RotateCcw className="w-4 h-4 mr-2" /> New Analysis
+          </Button>
+        ) : (
+          <div className="h-9 w-0" />
+        )}
       </CardHeader>
 
       <CardContent className="flex-1 space-y-6">
-        
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 bg-muted/50 rounded-lg border text-center">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Total</p>
@@ -169,19 +165,17 @@ function ResultColumn({ title, description, icon, results, isBaseline, onNewAnal
                 <button
                   key={idx}
                   onClick={() => setSelectedResult(result)}
-                  className={`w-full p-3 rounded-md border text-left transition-all hover:bg-muted/50 ${
-                    isSelected 
-                      ? "bg-primary/5 border-primary ring-1 ring-primary/20" 
-                      : "bg-background border-border"
-                  }`}
+                  className={`w-full p-3 rounded-md border text-left transition-all hover:bg-muted/50 ${isSelected
+                    ? "bg-primary/5 border-primary ring-1 ring-primary/20"
+                    : "bg-background border-border"
+                    }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <span className="text-sm font-medium truncate max-w-[150px]">{result.filename}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                      isADHD 
-                        ? "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400" 
-                        : "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400"
-                    }`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${isADHD
+                      ? "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400"
+                      : "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400"
+                      }`}>
                       {isADHD ? "ADHD" : "Control"}
                     </span>
                   </div>
@@ -203,12 +197,11 @@ function ResultColumn({ title, description, icon, results, isBaseline, onNewAnal
             </div>
           ) : (
             <div className="space-y-4 animate-in fade-in duration-300">
-              <div className={`p-3 rounded-md border flex items-center gap-3 ${
-                selectedResult.classification === "ADHD Detected"
-                  ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50"
-                  : "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50"
-              }`}>
-                {selectedResult.classification === "ADHD Detected" 
+              <div className={`p-3 rounded-md border flex items-center gap-3 ${selectedResult.classification === "ADHD Detected"
+                ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50"
+                : "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50"
+                }`}>
+                {selectedResult.classification === "ADHD Detected"
                   ? <AlertTriangle className="w-5 h-5 text-orange-600" />
                   : <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 }
@@ -243,7 +236,6 @@ function ResultColumn({ title, description, icon, results, isBaseline, onNewAnal
                   ))}
                 </div>
               </div>
-
               <div className="p-4 rounded-lg border border-border bg-card">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-2 flex items-center gap-2">
                   <TrendingUp className="w-3.5 h-3.5" />
@@ -251,7 +243,6 @@ function ResultColumn({ title, description, icon, results, isBaseline, onNewAnal
                 </p>
                 <p className="text-2xl font-bold text-foreground">{selectedResult.accuracy}%</p>
               </div>
-
             </div>
           )}
         </div>
