@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Upload, Filter, Brain } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import DataUploadPanel from '../components/DataUploadPanel'
-import ProcessingStatusPanel from '../components/ProcessingStatus'
-import ResultsView from '../components/ResultsView'
+import DataUploadPanel from '../components/data-upload'
+import ProcessingStatusPanel from '../components/processing-status'
+import ResultsView from '../components/results-view'
 import type { ClassificationResult } from '../types'
 
 export default function Demo() {
