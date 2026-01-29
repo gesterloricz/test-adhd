@@ -8,7 +8,7 @@ import Features from './pages/features'
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+      <div className="flex min-h-screen flex-col font-sans bg-background text-foreground">
         <Header />
         
         <main className="flex-1 w-full">

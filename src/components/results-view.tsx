@@ -1,41 +1,25 @@
 import { useState } from "react"
 import {
-  CheckCircle2,
-  AlertTriangle,
-  RotateCcw,
-  FileText,
-  Users,
-  Loader2,
-  TrendingUp,
-  Activity,
-  BarChart3,
-  BrainCircuit,
-  ArrowUpRight,
+  CheckCircle2, AlertTriangle, RotateCcw, FileText, Users,
+  Loader2, TrendingUp, Activity, BarChart3, BrainCircuit, ArrowUpRight
 } from "lucide-react"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card"
+
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { ClassificationResult } from "../types"
+import {
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
+} from "@/components/ui/card"
+import {
+  AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 
-// --- STATIC DATA FOR MODELS (Derived from your Colab Output) ---
+import type { ClassificationResult } from "../types"
+import { cn } from "@/lib/utils"
+
+// static baseline results
+
 const MODEL_STATS = {
   baseline: {
     accuracy: 96.75,
@@ -55,7 +39,13 @@ const MODEL_STATS = {
   },
 }
 
-// static data for baseline results
+const COMPARISON_METRICS = [
+  { key: "accuracy", label: "Accuracy" },
+  { key: "precision", label: "Precision" },
+  { key: "recall", label: "Recall" },
+  { key: "f1", label: "F1-Score" },
+] as const
+
 const BASELINE_RESULTS_STATIC: ClassificationResult[] = [
   {
     filename: "sample001.pdf",
@@ -81,42 +71,6 @@ const BASELINE_RESULTS_STATIC: ClassificationResult[] = [
       { name: "Theta Power", value: 0.15 },
     ],
   },
-  {
-    filename: "sample003.pdf",
-    classification: "ADHD Detected",
-    confidence: 94.1,
-    modelUsed: "Standard XGBoost (Baseline)",
-    accuracy: 96.75,
-    topFeatures: [
-      { name: "Theta/Beta Ratio", value: 0.48 },
-      { name: "Delta Power", value: 0.29 },
-      { name: "Coherence", value: 0.12 },
-    ],
-  },
-  {
-    filename: "sample004.pdf",
-    classification: "ADHD Detected",
-    confidence: 85.4,
-    modelUsed: "Standard XGBoost (Baseline)",
-    accuracy: 96.75,
-    topFeatures: [
-      { name: "Theta/Beta Ratio", value: 0.38 },
-      { name: "Delta Power", value: 0.25 },
-      { name: "Coherence", value: 0.19 },
-    ],
-  },
-  {
-    filename: "sample005.pdf",
-    classification: "Control (No ADHD)",
-    confidence: 98.0,
-    modelUsed: "Standard XGBoost (Baseline)",
-    accuracy: 96.75,
-    topFeatures: [
-      { name: "Alpha Peak", value: 0.55 },
-      { name: "Beta Power", value: 0.22 },
-      { name: "Theta Power", value: 0.11 },
-    ],
-  },
 ]
 
 interface ResultsViewProps {
@@ -124,46 +78,37 @@ interface ResultsViewProps {
   results: ClassificationResult[]
 }
 
-export default function ResultsView({
-  onNewAnalysis,
-  results,
-}: ResultsViewProps) {
+export default function ResultsView({ onNewAnalysis, results }: ResultsViewProps) {
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
   const [isRerunning, setIsRerunning] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const totalCount = results.length
-  const adhdCount = results.filter(
-    (r) => r.classification === "ADHD Detected"
-  ).length
-  const controlCount = results.filter(
-    (r) => r.classification === "Control (No ADHD)"
-  ).length
+  const adhdCount = results.filter((r) => r.classification === "ADHD Detected").length
+  const controlCount = results.filter((r) => r.classification === "Control (No ADHD)").length
 
   const getProposedResult = () => {
     if (!selectedFileName) return null
     const res = results.find((r) => r.filename === selectedFileName)
-    if (res) return { ...res, accuracy: MODEL_STATS.proposed.accuracy }
-    return null
+    return res ? { ...res, accuracy: MODEL_STATS.proposed.accuracy } : null
   }
 
   const getBaselineResult = () => {
     if (!selectedFileName) return null
-    const match = BASELINE_RESULTS_STATIC.find(
-      (r) => r.filename === selectedFileName
-    )
-    if (match) return { ...match, accuracy: MODEL_STATS.baseline.accuracy }
-
+    const match = BASELINE_RESULTS_STATIC.find((r) => r.filename === selectedFileName)
+    
+    // Fallback logic if exact match not found in static baseline set
     const index = results.findIndex((r) => r.filename === selectedFileName)
-    const fallback =
-      BASELINE_RESULTS_STATIC[index % BASELINE_RESULTS_STATIC.length]
-    return { ...fallback, accuracy: MODEL_STATS.baseline.accuracy }
+    const fallback = BASELINE_RESULTS_STATIC[index % BASELINE_RESULTS_STATIC.length] || BASELINE_RESULTS_STATIC[0]
+    
+    return match 
+      ? { ...match, accuracy: MODEL_STATS.baseline.accuracy }
+      : { ...fallback, accuracy: MODEL_STATS.baseline.accuracy }
   }
 
   const handleConfirmRerun = () => {
     setConfirmOpen(false)
     setIsRerunning(true)
-
     setTimeout(() => {
       setSelectedFileName(null)
       setIsRerunning(false)
@@ -171,41 +116,21 @@ export default function ResultsView({
     }, 1200)
   }
 
-  // Comparison Metrics Configuration
-  const COMPARISON_METRICS = [
-    { key: "accuracy", label: "Accuracy" },
-    { key: "precision", label: "Precision" },
-    { key: "recall", label: "Recall" },
-    { key: "f1", label: "F1-Score" },
-  ] as const
-
   return (
-    <div
-      className={`w-full space-y-6 transition-opacity ${
-        isRerunning ? "opacity-60 pointer-events-none" : ""
-      }`}
-    >
-      {/* Classification Summary */}
+    <div className={cn("w-full space-y-6 transition-opacity", isRerunning && "opacity-60 pointer-events-none")}>
+      
+      {/* classification summary */}
       <Card className="border-2 border-primary/10 bg-card shadow-sm">
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary" />
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Users className="h-5 w-5 text-primary" />
             Classification Summary
           </CardTitle>
 
           <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
             <AlertDialogTrigger asChild>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8"
-                disabled={results.length === 0 || isRerunning}
-              >
-                {isRerunning ? (
-                  <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
-                ) : (
-                  <RotateCcw className="w-3.5 h-3.5 mr-2" />
-                )}
+              <Button size="sm" variant="outline" className="h-8" disabled={results.length === 0 || isRerunning}>
+                {isRerunning ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="mr-2 h-3.5 w-3.5" />}
                 New Analysis
               </Button>
             </AlertDialogTrigger>
@@ -213,61 +138,37 @@ export default function ResultsView({
               <AlertDialogHeader>
                 <AlertDialogTitle>Start new analysis?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will clear all current results and selected files. This
-                  action cannot be undone.
+                  This will clear all current results and selected files. This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmRerun}>
-                  Yes, continue
-                </AlertDialogAction>
+                <AlertDialogAction onClick={handleConfirmRerun}>Yes, continue</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </CardHeader>
 
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 bg-muted/50 rounded-xl border text-center">
-              <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
-                Total Processed
-              </p>
-              <p className="text-3xl font-bold mt-1">{totalCount}</p>
-            </div>
-            <div className="p-4 bg-orange-500/10 border border-orange-200/50 dark:border-orange-900/30 rounded-xl text-center">
-              <p className="text-xs text-orange-600 dark:text-orange-400 uppercase font-semibold tracking-wider">
-                ADHD Detected
-              </p>
-              <p className="text-3xl font-bold text-orange-700 dark:text-orange-400 mt-1">
-                {adhdCount}
-              </p>
-            </div>
-            <div className="p-4 bg-emerald-500/10 border border-emerald-200/50 dark:border-emerald-900/30 rounded-xl text-center">
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 uppercase font-semibold tracking-wider">
-                Control Group
-              </p>
-              <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400 mt-1">
-                {controlCount}
-              </p>
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <SummaryStatBox label="Total Processed" value={totalCount} />
+            <SummaryStatBox label="ADHD Detected" value={adhdCount} variant="orange" />
+            <SummaryStatBox label="Control Group" value={controlCount} variant="emerald" />
           </div>
         </CardContent>
       </Card>
 
-      {/* File selection */}
-      <Card className="p-4 border shadow-sm">
-        <h3 className="text-sm font-medium mb-3 text-muted-foreground">
-          Select File for Detailed Comparison
-        </h3>
-        <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto custom-scrollbar">
+      {/* file section */}
+      <Card className="border p-4 shadow-sm">
+        <h3 className="mb-3 text-sm font-medium text-muted-foreground">Select File for Detailed Comparison</h3>
+        <div className="custom-scrollbar flex max-h-[120px] flex-wrap gap-2 overflow-y-auto">
           {results.map((r) => (
             <Button
               key={r.filename}
               variant={selectedFileName === r.filename ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedFileName(r.filename)}
-              className="text-xs h-8"
+              className="h-8 text-xs"
             >
               {r.filename}
             </Button>
@@ -275,16 +176,15 @@ export default function ResultsView({
         </div>
       </Card>
 
-      {/* Detailed Comparison Grid (Results) */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      {/* model comparison grid */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <ResultColumn
           title="Baseline Model"
           description="Standard XGBoost"
           selectedResult={getBaselineResult()}
-          isBaseline
+          isBaseline={true}
           stats={MODEL_STATS.baseline}
         />
-
         <ResultColumn
           title="Proposed Model"
           description="Optimized XGBoost (DART + IBL)"
@@ -294,67 +194,75 @@ export default function ResultsView({
         />
       </div>
 
-      {/* --- MOVED SECTION: PERFORMANCE METRICS COMPARISON (Now at Bottom) --- */}
+      {/* metrics comparison section */}
       {selectedFileName && (
-        <div className="space-y-3 pt-4 border-t animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="animate-in fade-in slide-in-from-top-4 space-y-3 border-t pt-4 duration-500">
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
+            <BarChart3 className="h-5 w-5 text-primary" />
             <h3 className="text-lg font-semibold">Performance Metrics Comparison</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             {COMPARISON_METRICS.map((metric) => {
-              const baselineVal = MODEL_STATS.baseline[metric.key];
-              const proposedVal = MODEL_STATS.proposed[metric.key];
-              const improvement = (proposedVal - baselineVal).toFixed(2);
+              const baselineVal = MODEL_STATS.baseline[metric.key]
+              const proposedVal = MODEL_STATS.proposed[metric.key]
+              const improvement = (proposedVal - baselineVal).toFixed(2)
               
               return (
-                <Card key={metric.key} className="bg-card/50 border shadow-sm">
+                <Card key={metric.key} className="border bg-card/50 shadow-sm">
                   <CardContent className="p-5">
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="font-semibold text-muted-foreground">
-                        {metric.label}
-                      </span>
-                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-1 rounded-full flex items-center gap-1">
-                        <ArrowUpRight className="w-3 h-3" />
+                    <div className="mb-4 flex items-start justify-between">
+                      <span className="font-semibold text-muted-foreground">{metric.label}</span>
+                      <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+                        <ArrowUpRight className="h-3 w-3" />
                         +{improvement}%
                       </span>
                     </div>
 
                     <div className="space-y-4">
-                      {/* Baseline Bar */}
                       <div className="space-y-1.5">
                         <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground font-medium">Baseline</span>
+                          <span className="font-medium text-muted-foreground">Baseline</span>
                           <span className="font-mono">{baselineVal}%</span>
                         </div>
                         <Progress value={baselineVal} className="h-2 bg-muted" />
                       </div>
 
-                      {/* Proposed Bar */}
                       <div className="space-y-1.5">
                         <div className="flex justify-between text-xs">
                           <span className="font-bold">Proposed</span>
                           <span className="font-mono font-bold">{proposedVal}%</span>
                         </div>
-                        {/* Custom styled progress to match image black bar */}
-                        <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden">
-                           <div 
-                              className="h-full bg-primary/90 rounded-full" 
-                              style={{ width: `${proposedVal}%` }} 
-                           />
+                        <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                           <div className="h-full rounded-full bg-primary/90" style={{ width: `${proposedVal}%` }} />
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              );
+              )
             })}
           </div>
         </div>
       )}
     </div>
   )
+}
+
+function SummaryStatBox({ label, value, variant = "default" }: { label: string, value: number, variant?: "default" | "orange" | "emerald" }) {
+    const styles = {
+        default: { bg: "bg-muted/50", text: "text-muted-foreground", val: "" },
+        orange: { bg: "bg-orange-500/10 border-orange-200/50 dark:border-orange-900/30", text: "text-orange-600 dark:text-orange-400", val: "text-orange-700 dark:text-orange-400" },
+        emerald: { bg: "bg-emerald-500/10 border-emerald-200/50 dark:border-emerald-900/30", text: "text-emerald-600 dark:text-emerald-400", val: "text-emerald-700 dark:text-emerald-400" },
+    }
+    const s = styles[variant]
+    
+    return (
+        <div className={cn("rounded-xl border p-4 text-center", s.bg)}>
+            <p className={cn("text-xs uppercase font-semibold tracking-wider", s.text)}>{label}</p>
+            <p className={cn("mt-1 text-3xl font-bold", s.val)}>{value}</p>
+        </div>
+    )
 }
 
 interface ResultColumnProps {
@@ -365,19 +273,9 @@ interface ResultColumnProps {
   stats: typeof MODEL_STATS.baseline
 }
 
-function ResultColumn({
-  title,
-  description,
-  selectedResult,
-  isBaseline,
-  stats,
-}: ResultColumnProps) {
+function ResultColumn({ title, description, selectedResult, isBaseline, stats }: ResultColumnProps) {
   return (
-    <Card
-      className={`flex flex-col h-full border-2 shadow-sm transition-all bg-card ${
-        isBaseline ? "border-muted" : "border-primary/20"
-      }`}
-    >
+    <Card className={cn("flex h-full flex-col border-2 bg-card shadow-sm transition-all", isBaseline ? "border-muted" : "border-primary/20")}>
       <CardHeader className="pb-2">
         <div className="space-y-1">
           <CardTitle className="text-lg text-foreground/90">{title}</CardTitle>
@@ -387,153 +285,106 @@ function ResultColumn({
 
       <CardContent className="flex-1">
         {!selectedResult ? (
-          <div className="h-[350px] flex flex-col items-center justify-center text-center p-6 border-2 border-dashed rounded-lg bg-muted/5 text-muted-foreground">
-            <FileText className="w-10 h-10 mb-3 opacity-20" />
+          <div className="flex h-[350px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/5 p-6 text-center text-muted-foreground">
+            <FileText className="mb-3 h-10 w-10 opacity-20" />
             <p className="text-sm font-medium">No File Selected</p>
-            <p className="text-xs mt-1 max-w-[200px]">
-              Click a file name above to view analysis metrics.
-            </p>
+            <p className="mt-1 max-w-[200px] text-xs">Click a file name above to view analysis metrics.</p>
           </div>
         ) : (
           <Tabs defaultValue="result" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsList className="mb-4 grid w-full grid-cols-2">
               <TabsTrigger value="result">Result</TabsTrigger>
               <TabsTrigger value="analysis">Model Analysis</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="result" className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
-              {/* Classification Result Box */}
-              <div
-                className={`p-4 rounded-lg border flex items-center gap-3 ${
+            <TabsContent value="result" className="animate-in fade-in zoom-in-95 space-y-6 duration-200">
+              {/* Classification Result Badge */}
+              <div className={cn(
+                  "flex items-center gap-3 rounded-lg border p-4",
                   selectedResult.classification === "ADHD Detected"
-                    ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50"
-                    : "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50"
-                }`}
-              >
+                    ? "border-orange-200 bg-orange-50 dark:border-orange-900/50 dark:bg-orange-950/20"
+                    : "border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/20"
+                )}>
                 {selectedResult.classification === "ADHD Detected" ? (
-                  <AlertTriangle className="w-5 h-5 text-orange-600" />
+                  <AlertTriangle className="h-5 w-5 text-orange-600" />
                 ) : (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                 )}
                 <div>
-                  <p className="text-sm font-bold">
-                    {selectedResult.classification}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground font-mono">
-                    {selectedResult.filename}
-                  </p>
+                  <p className="text-sm font-bold">{selectedResult.classification}</p>
+                  <p className="text-[10px] font-mono text-muted-foreground">{selectedResult.filename}</p>
                 </div>
               </div>
 
+              {/* confidence score */}
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs">
-                  <span className="font-medium text-muted-foreground">
-                    Confidence Score
-                  </span>
-                  <span className="font-bold">
-                    {selectedResult.confidence.toFixed(1)}%
-                  </span>
+                  <span className="font-medium text-muted-foreground">Confidence Score</span>
+                  <span className="font-bold">{selectedResult.confidence.toFixed(1)}%</span>
                 </div>
                 <Progress value={selectedResult.confidence} className="h-2" />
               </div>
 
+              {/* top features */}
               <div className="space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                    <BrainCircuit className="w-3 h-3"/> Top Contributing Features
+                <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <BrainCircuit className="h-3 w-3"/> Top Contributing Features
                 </p>
                 <div className="grid gap-2">
                   {selectedResult.topFeatures.map((feature, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-2.5 rounded-md bg-muted/40 border text-xs"
-                    >
-                      <span className="font-medium truncate">
-                        {feature.name}
-                      </span>
-                      <span className="font-mono font-bold text-primary">
-                        {feature.value}
-                      </span>
+                    <div key={i} className="flex items-center justify-between rounded-md border bg-muted/40 p-2.5 text-xs">
+                      <span className="truncate font-medium">{feature.name}</span>
+                      <span className="font-mono font-bold text-primary">{feature.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Model Accuracy Footer */}
-              <div className="mt-4 rounded-xl bg-muted/40 p-4 border">
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Model Accuracy
-                  </span>
+              {/* accuracy footer */}
+              <div className="mt-4 rounded-xl border bg-muted/40 p-4">
+                <div className="mb-1 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Model Accuracy</span>
                 </div>
-                <p className="text-3xl font-bold tracking-tight">
-                  {stats.accuracy}%
-                </p>
+                <p className="text-3xl font-bold tracking-tight">{stats.accuracy}%</p>
               </div>
             </TabsContent>
 
-            <TabsContent value="analysis" className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-              {/* Performance Metrics Breakdown */}
+            <TabsContent value="analysis" className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <Activity className="w-4 h-4 text-primary" />
+                <div className="flex items-center gap-2 border-b pb-2">
+                  <Activity className="h-4 w-4 text-primary" />
                   <span className="text-sm font-bold">Performance Metrics</span>
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Precision</span>
-                      <span className="font-mono font-medium">{stats.precision}%</span>
-                    </div>
-                    <Progress value={stats.precision} className="h-1.5 opacity-80" />
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Recall</span>
-                      <span className="font-mono font-medium">{stats.recall}%</span>
-                    </div>
-                    <Progress value={stats.recall} className="h-1.5 opacity-80" />
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">F1-Score</span>
-                      <span className="font-mono font-medium">{stats.f1}%</span>
-                    </div>
-                    <Progress value={stats.f1} className="h-1.5 opacity-80" />
-                  </div>
+                    {/* metric bars */}
+                    {[{l: "Precision", v: stats.precision}, {l: "Recall", v: stats.recall}, {l: "F1-Score", v: stats.f1}].map((m) => (
+                         <div key={m.l} className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">{m.l}</span>
+                            <span className="font-mono font-medium">{m.v}%</span>
+                            </div>
+                            <Progress value={m.v} className="h-1.5 opacity-80" />
+                        </div>
+                    ))}
                 </div>
               </div>
 
-              {/* Clinical Reliability / Confusion Matrix Data */}
               <div className="space-y-3">
-                  <div className="flex items-center gap-2 pb-2 border-b mt-2">
-                  <BarChart3 className="w-4 h-4 text-primary" />
+                  <div className="mt-2 flex items-center gap-2 border-b pb-2">
+                  <BarChart3 className="h-4 w-4 text-primary" />
                   <span className="text-sm font-bold">Clinical Reliability</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-2 rounded text-center">
-                      <div className="font-bold text-lg text-emerald-700 dark:text-emerald-400">{stats.matrix.tp}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase">True Positives</div>
-                    </div>
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-2 rounded text-center">
-                      <div className="font-bold text-lg text-emerald-700 dark:text-emerald-400">{stats.matrix.tn}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase">True Negatives</div>
-                    </div>
-                    <div className="bg-red-500/10 border border-red-500/20 p-2 rounded text-center">
-                      <div className="font-bold text-lg text-red-700 dark:text-red-400">{stats.matrix.fn}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase">False Negatives</div>
-                    </div>
-                    <div className="bg-orange-500/10 border border-orange-500/20 p-2 rounded text-center">
-                      <div className="font-bold text-lg text-orange-700 dark:text-orange-400">{stats.matrix.fp}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase">False Positives</div>
-                    </div>
+                    <ReliabilityBox value={stats.matrix.tp} label="True Positives" color="emerald" />
+                    <ReliabilityBox value={stats.matrix.tn} label="True Negatives" color="emerald" />
+                    <ReliabilityBox value={stats.matrix.fn} label="False Negatives" color="red" />
+                    <ReliabilityBox value={stats.matrix.fp} label="False Positives" color="orange" />
                 </div>
                 
-                <div className="text-[10px] text-muted-foreground bg-muted p-2 rounded italic text-center">
+                <div className="rounded bg-muted p-2 text-center text-[10px] italic text-muted-foreground">
                     {stats.missedCases} missed ADHD diagnoses in test set
                 </div>
               </div>
@@ -543,4 +394,19 @@ function ResultColumn({
       </CardContent>
     </Card>
   )
+}
+
+function ReliabilityBox({ value, label, color }: { value: number, label: string, color: "emerald" | "red" | "orange" }) {
+    const colorStyles = {
+        emerald: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400",
+        red: "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400",
+        orange: "bg-orange-500/10 border-orange-500/20 text-orange-700 dark:text-orange-400"
+    }
+
+    return (
+        <div className={cn("rounded border p-2 text-center", colorStyles[color])}>
+            <div className="text-lg font-bold">{value}</div>
+            <div className="text-[10px] uppercase text-muted-foreground">{label}</div>
+        </div>
+    )
 }

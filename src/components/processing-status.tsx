@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
-import { Card } from "@/components/ui/card"
 import { Loader2, CheckCircle2, Circle } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
-const processingSteps = [
+const PROCESSING_STEPS = [
   {
     id: 1,
     name: "Preprocessing", 
@@ -35,19 +36,19 @@ const processingSteps = [
   },
 ]
 
-interface Props {
+interface ProcessingStatusPanelProps {
   onComplete: () => void
 }
 
-export default function ProcessingStatusPanel({ onComplete }: Props) {
+export default function ProcessingStatusPanel({ onComplete }: ProcessingStatusPanelProps) {
   const [currentStep, setCurrentStep] = useState(0)
 
   useEffect(() => {
-    if (currentStep < processingSteps.length) {
+    if (currentStep < PROCESSING_STEPS.length) {
+      const duration = PROCESSING_STEPS[currentStep]?.duration || 1000
       const timer = setTimeout(() => {
         setCurrentStep((prev) => prev + 1)
-      }, processingSteps[currentStep]?.duration || 1000)
-
+      }, duration)
       return () => clearTimeout(timer)
     } else {
       const timer = setTimeout(() => {
@@ -59,11 +60,11 @@ export default function ProcessingStatusPanel({ onComplete }: Props) {
 
   return (
     <div className="w-full">
-      <Card className="p-4 sm:p-8 bg-card border-border shadow-sm">
+      <Card className="border-border bg-card p-4 shadow-sm sm:p-8">
         <div className="mb-6 sm:mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Loader2 className="w-5 h-5 text-primary animate-spin" />
+          <div className="mb-2 flex items-center gap-3">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
             <h2 className="text-xl font-semibold text-foreground">Processing Status</h2>
           </div>
@@ -71,7 +72,7 @@ export default function ProcessingStatusPanel({ onComplete }: Props) {
         </div>
 
         <div className="space-y-3">
-          {processingSteps.map((step, index) => {
+          {PROCESSING_STEPS.map((step, index) => {
             const isComplete = index < currentStep
             const isCurrent = index === currentStep
             const isPending = index > currentStep
@@ -79,40 +80,42 @@ export default function ProcessingStatusPanel({ onComplete }: Props) {
             return (
               <div
                 key={step.id}
-                className={`
-                  flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border transition-all
-                  ${isCurrent ? "bg-primary/5 border-primary" : "bg-muted/20 border-border"}
-                `}
+                className={cn(
+                  "flex items-start gap-3 rounded-lg border p-3 transition-all sm:gap-4 sm:p-4",
+                  isCurrent ? "bg-primary/5 border-primary" : "bg-muted/20 border-border"
+                )}
               >
-                <div className="flex-shrink-0 w-8 text-center mt-0.5">
-                  {isComplete && <CheckCircle2 className="w-6 h-6 text-green-500 mx-auto" />}
-                  {isCurrent && <Loader2 className="w-6 h-6 text-primary animate-spin mx-auto" />}
-                  {isPending && <Circle className="w-6 h-6 text-muted-foreground mx-auto" />}
+                <div className="mt-0.5 w-8 flex-shrink-0 text-center">
+                  {isComplete && <CheckCircle2 className="mx-auto h-6 w-6 text-green-500" />}
+                  {isCurrent && <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />}
+                  {isPending && <Circle className="mx-auto h-6 w-6 text-muted-foreground" />}
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
                     <span className="text-xs font-semibold text-muted-foreground">Step {step.id}</span>
                     <p
-                      className={`
-                        font-semibold text-sm
-                        ${isComplete ? "text-green-600" : ""}
-                        ${isCurrent ? "text-primary" : ""}
-                        ${isPending ? "text-muted-foreground" : ""}
-                      `}
+                      className={cn(
+                        "font-semibold text-sm",
+                        isComplete && "text-green-600",
+                        isCurrent && "text-primary",
+                        isPending && "text-muted-foreground"
+                      )}
                     >
                       {step.name}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground break-words">{step.description}</p>
+                  <p className="break-words text-xs text-muted-foreground">{step.description}</p>
                 </div>
 
                 <div className="flex-shrink-0">
                   {isComplete && (
-                    <span className="hidden sm:inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">✓ Complete</span>
+                    <span className="hidden rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-700 sm:inline-block">
+                      ✓ Complete
+                    </span>
                   )}
                   {isCurrent && (
-                    <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">
+                    <span className="rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
                       Processing...
                     </span>
                   )}
@@ -122,17 +125,17 @@ export default function ProcessingStatusPanel({ onComplete }: Props) {
           })}
         </div>
 
-        <div className="mt-6 pt-6 border-t border-border">
-          <div className="flex items-center justify-between mb-2">
+        <div className="mt-6 border-t border-border pt-6">
+          <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Overall Progress</span>
             <span className="text-sm font-semibold text-foreground">
-              {Math.round((currentStep / processingSteps.length) * 100)}%
+              {Math.round((currentStep / PROCESSING_STEPS.length) * 100)}%
             </span>
           </div>
-          <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+          <div className="h-2.5 overflow-hidden rounded-full bg-muted">
             <div
               className="h-full bg-primary transition-all duration-500 ease-out"
-              style={{ width: `${(currentStep / processingSteps.length) * 100}%` }}
+              style={{ width: `${(currentStep / PROCESSING_STEPS.length) * 100}%` }}
             />
           </div>
         </div>
