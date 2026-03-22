@@ -1,11 +1,13 @@
 export type ClassificationResult = {
   filename: string
-  classification: "ADHD Detected" | "Control (No ADHD)"
-  confidence: number
-  topFeatures: {
-    name: string
-    value: number
-  }[]
-  modelUsed: string
-  accuracy: number
+
+  // Proposed Model (Primary)
+  proposed_classification: "ADHD Detected" | "Control (No ADHD)"
+  proposed_confidence: number
+
+  // Baseline Model (Secondary)
+  baseline_classification: "ADHD Detected" | "Control (No ADHD)"
+  baseline_confidence: number
+
+  total_epochs: number
 }

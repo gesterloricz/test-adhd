@@ -37,8 +37,8 @@ export default function BatchResultsView({ onNewAnalysis, results }: BatchResult
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const totalCount = results.length
-  const adhdCount = results.filter((r) => r.classification === "ADHD Detected").length
-  const controlCount = results.filter((r) => r.classification === "Control (No ADHD)").length
+  const adhdCount = results.filter((r) => r.proposed_classification === "ADHD Detected").length
+  const controlCount = results.filter((r) => r.proposed_classification === "Control (No ADHD)").length
 
   const handleConfirmRerun = () => {
     setConfirmOpen(false)

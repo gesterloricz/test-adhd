@@ -38,25 +38,39 @@ const PROCESSING_STEPS = [
 
 interface ProcessingStatusPanelProps {
   onComplete: () => void
+  isBackendDone?: boolean
 }
 
-export default function ProcessingStatusPanel({ onComplete }: ProcessingStatusPanelProps) {
+export default function ProcessingStatusPanel({ onComplete, isBackendDone = false }: ProcessingStatusPanelProps) {
   const [currentStep, setCurrentStep] = useState(0)
 
   useEffect(() => {
-    if (currentStep < PROCESSING_STEPS.length) {
-      const duration = PROCESSING_STEPS[currentStep]?.duration || 1000
-      const timer = setTimeout(() => {
-        setCurrentStep((prev) => prev + 1)
-      }, duration)
-      return () => clearTimeout(timer)
-    } else {
-      const timer = setTimeout(() => {
-        onComplete()
-      }, 500)
-      return () => clearTimeout(timer)
+    // If backend is done and we are at the end, trigger completion
+    if (currentStep >= PROCESSING_STEPS.length) {
+      if (isBackendDone) {
+         const timer = setTimeout(() => onComplete(), 500)
+         return () => clearTimeout(timer)
+      }
+      return // Wait here if we somehow reached the end before backend is done
     }
-  }, [currentStep, onComplete])
+
+    // Determine if we should pause at the current step waiting for backend
+    // E.g., pause at Feature Extraction (step index 1) or Classification (step index 3)
+    // Here we'll just stall at step 3 (Classification) until the backend actually finishes 
+    const isWaitingForBackendAtStep = currentStep === 3 && !isBackendDone
+    
+    if (isWaitingForBackendAtStep) {
+        return // Do nothing, let the spinner keep spinning on this step
+    }
+
+    // Normal progression for other steps
+    const duration = PROCESSING_STEPS[currentStep]?.duration || 1000
+    const timer = setTimeout(() => {
+      setCurrentStep((prev) => prev + 1)
+    }, duration)
+    
+    return () => clearTimeout(timer)
+  }, [currentStep, onComplete, isBackendDone])
 
   return (
     <div className="w-full">

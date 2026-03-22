@@ -1,7 +1,7 @@
 import { useState } from "react"
 import {
   CheckCircle2, AlertTriangle, RotateCcw, FileText,
-  Activity, BarChart3, BrainCircuit, ArrowUpRight, Loader2, TrendingUp
+  Activity, BarChart3, ArrowUpRight, Loader2, TrendingUp
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -21,19 +21,19 @@ import { cn } from "@/lib/utils"
 // --- Constants & Mock Data for Comparison ---
 const MODEL_STATS = {
   baseline: {
-    accuracy: 96.75,
-    precision: 95.48,
-    recall: 98.89,
-    f1: 97.16,
-    matrix: { tp: 444, tn: 331, fp: 21, fn: 5 },
-    missedCases: 5,
+    accuracy: 96.88,
+    precision: 95.49,
+    recall: 99.11,
+    f1: 97.27,
+    matrix: { tp: 445, tn: 331, fp: 21, fn: 4 },
+    missedCases: 4,
   },
   proposed: {
-    accuracy: 98.63,
-    precision: 98.24,
+    accuracy: 98.38,
+    precision: 97.81,
     recall: 99.33,
-    f1: 98.78,
-    matrix: { tp: 446, tn: 344, fp: 8, fn: 3 },
+    f1: 98.56,
+    matrix: { tp: 446, tn: 342, fp: 10, fn: 3 },
     missedCases: 3,
   },
 }
@@ -45,32 +45,7 @@ const COMPARISON_METRICS = [
   { key: "f1", label: "F1-Score" },
 ] as const
 
-const BASELINE_RESULTS_STATIC: ClassificationResult[] = [
-  {
-    filename: "sample001.pdf",
-    classification: "ADHD Detected",
-    confidence: 92.5,
-    modelUsed: "Standard XGBoost (Baseline)",
-    accuracy: 96.75,
-    topFeatures: [
-      { name: "Theta/Beta Ratio", value: 0.45 },
-      { name: "Delta Power", value: 0.32 },
-      { name: "Spectral Entropy", value: 0.18 },
-    ],
-  },
-  {
-    filename: "sample002.pdf",
-    classification: "Control (No ADHD)",
-    confidence: 89.2,
-    modelUsed: "Standard XGBoost (Baseline)",
-    accuracy: 96.75,
-    topFeatures: [
-      { name: "Alpha Peak", value: 0.41 },
-      { name: "Beta Power", value: 0.28 },
-      { name: "Theta Power", value: 0.15 },
-    ],
-  },
-]
+
 
 // --- Helper Components ---
 function ReliabilityBox({ value, label, color }: { value: number, label: string, color: "emerald" | "red" | "orange" }) {
@@ -88,7 +63,17 @@ function ReliabilityBox({ value, label, color }: { value: number, label: string,
 }
 
 function ResultColumn({ title, description, selectedResult, isBaseline, stats }: { 
-    title: string, description: string, selectedResult: ClassificationResult | null, isBaseline: boolean, stats: typeof MODEL_STATS.baseline 
+    title: string, 
+    description: string, 
+    selectedResult: {
+        filename: string,
+        classification: string,
+        confidence: number,
+        total_epochs: number,
+        topFeatures: { name: string, value: number }[]
+    } | null, 
+    isBaseline: boolean, 
+    stats: typeof MODEL_STATS.baseline 
 }) {
   return (
     <Card className={cn("flex h-full flex-col border-2 bg-card shadow-sm transition-all", isBaseline ? "border-muted" : "border-primary/20")}>
@@ -137,19 +122,7 @@ function ResultColumn({ title, description, selectedResult, isBaseline, stats }:
                 <Progress value={selectedResult.confidence} className="h-2" />
               </div>
 
-              <div className="space-y-2">
-                <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <BrainCircuit className="h-3 w-3"/> Top Contributing Features
-                </p>
-                <div className="grid gap-2">
-                  {selectedResult.topFeatures.map((feature, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-md border bg-muted/40 p-2.5 text-xs">
-                      <span className="truncate font-medium">{feature.name}</span>
-                      <span className="font-mono font-bold text-primary">{feature.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+
 
               <div className="mt-4 rounded-xl border bg-muted/40 p-4">
                 <div className="mb-1 flex items-center gap-2">
@@ -157,6 +130,7 @@ function ResultColumn({ title, description, selectedResult, isBaseline, stats }:
                   <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Model Accuracy</span>
                 </div>
                 <p className="text-3xl font-bold tracking-tight">{stats.accuracy}%</p>
+                <p className="mt-2 text-xs text-muted-foreground">Epochs Evaluated: <span className="font-bold">{selectedResult?.total_epochs || 0}</span></p>
               </div>
             </TabsContent>
 
@@ -217,18 +191,22 @@ export default function SingleResultView({ result, onNewAnalysis, standalone = f
     }, 1200)
   }
 
-  const proposedResult = { ...result, accuracy: MODEL_STATS.proposed.accuracy }
+  // Map the new Dual-Model ClassificationResult to two independent "fake" SingleResults just for the UI columns
+  const proposedMappedResult = { 
+      filename: result.filename,
+      classification: result.proposed_classification,
+      confidence: result.proposed_confidence,
+      total_epochs: result.total_epochs,
+      topFeatures: [] // Removed static features since backend doesn't provide them yet
+  }
   
-  const baselineMatch = BASELINE_RESULTS_STATIC.find((r) => r.filename === result.filename)
-  
-  const baselineResult = baselineMatch 
-      ? { ...baselineMatch, accuracy: MODEL_STATS.baseline.accuracy }
-      : { 
-          ...result,
-          modelUsed: "Standard XGBoost (Baseline)", 
-          accuracy: MODEL_STATS.baseline.accuracy,
-          confidence: Math.max(0, result.confidence - 4.2) 
-        }
+  const baselineMappedResult = { 
+      filename: result.filename,
+      classification: result.baseline_classification,
+      confidence: result.baseline_confidence,
+      total_epochs: result.total_epochs,
+      topFeatures: [] // Removed static features since backend doesn't provide them yet
+  }
 
   return (
     <div className={cn("w-full space-y-6 transition-opacity", isRerunning && "opacity-60 pointer-events-none")}>
@@ -273,8 +251,8 @@ export default function SingleResultView({ result, onNewAnalysis, standalone = f
 
       {/* model comparison grid */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <ResultColumn title="Baseline Model" description="Standard XGBoost" selectedResult={baselineResult} isBaseline={true} stats={MODEL_STATS.baseline} />
-        <ResultColumn title="Proposed Model" description="Optimized XGBoost (DART + IBL)" selectedResult={proposedResult} isBaseline={false} stats={MODEL_STATS.proposed} />
+        <ResultColumn title="Baseline Model" description="Standard XGBoost" selectedResult={baselineMappedResult} isBaseline={true} stats={MODEL_STATS.baseline} />
+        <ResultColumn title="Proposed Model" description="Optimized XGBoost (DART + IBL)" selectedResult={proposedMappedResult} isBaseline={false} stats={MODEL_STATS.proposed} />
       </div>
 
       {/* metrics comparison section */}

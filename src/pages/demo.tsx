@@ -9,50 +9,104 @@ import ResultsView from '../components/results-view'
 import type { ClassificationResult } from '../types'
 
 export default function Demo() {
-  const [results, setResults] = useState<ClassificationResult[]>([])
   const [files, setFiles] = useState<File[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
+
+  const [apiResults, setApiResults] = useState<ClassificationResult[]>([])
+  const [isBackendDone, setIsBackendDone] = useState(false)
+  const [isAnimationDone, setIsAnimationDone] = useState(false)
 
   const handleFilesSelected = (newFiles: File[]) => {
     setFiles(newFiles)
   }
 
-  const handleStartProcessing = () => {
+  const handleStartProcessing = async () => {
     if (files.length === 0) return
     setIsProcessing(true)
+    setIsBackendDone(false)
+    setIsAnimationDone(false)
+    
+    try {
+      const newResults: ClassificationResult[] = []
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const formData = new FormData()
+        formData.append('file', file)
+        
+        const response = await fetch('http://localhost:8000/predict', {
+          method: 'POST',
+          body: formData,
+        })
+        
+        
+        if (!response.ok) {
+           let errorDetail = "Unknown error"
+           try {
+             const errorData = await response.json()
+             errorDetail = errorData.detail || errorData.message || response.statusText
+           } catch(e) {}
+           console.error(`Failed to process ${file.name}:`, errorDetail)
+           alert(`Error processing ${file.name}:\n\n${errorDetail}\n\nPlease check the file format or try another file.`)
+           continue
+        }
+        
+        const data = await response.json()
+        
+        newResults.push({
+          filename: data.filename,
+          proposed_classification: data.proposed_prediction === 1 ? "ADHD Detected" : "Control (No ADHD)",
+          proposed_confidence: data.proposed_confidence,
+          baseline_classification: data.baseline_prediction === 1 ? "ADHD Detected" : "Control (No ADHD)",
+          baseline_confidence: data.baseline_confidence,
+          total_epochs: data.total_epochs,
+        })
+      }
+      
+      setApiResults(newResults)
+      setIsBackendDone(true)
+    } catch (e) {
+      console.error("API error:", e)
+      setIsBackendDone(true) // allow UI to proceed even if error to show empty or error state
+    }
   }
 
   const handleProcessingComplete = () => {
-    const newResults: ClassificationResult[] = files.map((file, index) => ({
-      filename: file.name,
-      classification: index % 2 === 0 ? "ADHD Detected" : "Control (No ADHD)",
-      confidence: 89 + Math.random() * 8,
-      modelUsed: "XGBoost (DART & IBL)",
-      accuracy: 95.6,
-      topFeatures: [
-        { name: "Beta Power (Cz)", value: 24.5 },
-        { name: "Theta/Beta Ratio", value: 1.87 },
-        { name: "Spec. Entropy (F3)", value: 0.84 },
-      ],
-    }))
-
-    setResults(newResults)
-    setIsProcessing(false)
-    setFiles([])
+    setIsAnimationDone(true)
   }
+  
+  // Show results only when both backend and animation are done
+  const shouldShowResults = isBackendDone && isAnimationDone && apiResults.length > 0
 
   const handleNewAnalysis = () => {
-    setResults([])
+    setApiResults([])
+    setApiResults([])
     setFiles([])
     setIsProcessing(false)
+    setIsBackendDone(false)
+    setIsAnimationDone(false)
   }
 
   const renderContent = () => {
-    if (isProcessing) {
-        return <ProcessingStatusPanel onComplete={handleProcessingComplete} />
+    if (shouldShowResults) {
+        return <ResultsView results={apiResults} onNewAnalysis={handleNewAnalysis} />
     }
-    if (results.length > 0) {
-        return <ResultsView results={results} onNewAnalysis={handleNewAnalysis} />
+    if (isProcessing) {
+        if (isBackendDone && isAnimationDone && apiResults.length === 0) {
+            return (
+                <div className="flex flex-col items-center justify-center p-8 bg-card rounded-lg border border-destructive/20 w-full max-w-2xl mx-auto shadow-sm">
+                    <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+                        <span className="text-destructive font-bold text-xl">!</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground mb-2">Processing Failed</h3>
+                    <p className="text-muted-foreground text-center mb-6">
+                        The backend API encountered an error while processing your EEG file. Only 19-channel recordings matched exactly with the model are supported.
+                    </p>
+                    <Button onClick={handleNewAnalysis} variant="default">Try Another File</Button>
+                </div>
+            )
+        }
+        return <ProcessingStatusPanel isBackendDone={isBackendDone} onComplete={handleProcessingComplete} />
     }
     return (
         <DataUploadPanel 
@@ -76,7 +130,7 @@ export default function Demo() {
           </Button>
         </div>
 
-        {!results.length && !isProcessing && (
+        {!apiResults.length && !isProcessing && (
           <div className="animate-in fade-in zoom-in-95 duration-700 rounded-lg border border-border/50 bg-card py-8 shadow-sm sm:py-10">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
               <div className="mb-8 text-center sm:mb-10">
