@@ -6,22 +6,21 @@ import { Button } from "@/components/ui/button"
 export default function Home() {
   return (
     <div className="flex min-h-[calc(100vh-140px)] flex-col">
-      <section className="flex flex-1 flex-col justify-center border-b bg-muted/30 py-16 md:py-32">
+      <section className="flex flex-1 flex-col justify-center border-b bg-muted/30 py-21 px-4 md:px-8 md:py-32">
         <div className="mx-auto max-w-5xl space-y-10 px-4 text-center sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl space-y-6">
             <h1 className="animate-in fade-in slide-in-from-bottom-4 duration-800 ease-out text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl md:text-6xl">
-              Optimized XGBoost with DART and <br className="hidden lg:block" />
-              Influence-Balanced Loss
+              Optimized XGBoost EEG Classification with DART and Influence-Balanced Loss
             </h1>
 
-            <p className="animate-in fade-in slide-in-from-bottom-4 duration-800 delay-200 ease-out mx-auto max-w-3xl leading-relaxed text-muted-foreground text-lg sm:text-xl fill-mode-both">
-              An optimized XGBoost <strong>ADHD classification</strong> pipeline for better EEG-driven generalization integrates <strong>DART</strong> and <strong>Influence-Balanced Loss</strong> to capture nonlinear patterns, curb noise-induced overfitting, and stay reliable on class-imbalanced cohorts.
+            <p className="animate-in fade-in slide-in-from-bottom-4 duration-800 delay-200 ease-out mx-auto max-w-3xl leading-relaxed text-muted-foreground text-sm sm:text-md fill-mode-both">
+              An optimized <strong>XGBoost ADHD classification</strong> using EEG data by integrating <strong>Dropout Additive Regression Trees (DART) </strong> and <strong>Influence-Balanced Loss(IBL)</strong>, improving generalization to nonlinear patterns, reducing overfitting and enhancing the performance under class-imbalance datasets.
             </p>
 
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-800 delay-300 ease-out flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row fill-mode-both">
               <Button size="lg" className="h-12 w-full gap-2 px-8 text-base transition-transform hover:scale-105 sm:w-auto" asChild>
                 <Link to="/demo">
-                  Try the Demo <ArrowRight className="h-4 w-4" />
+                  Try Demo <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="h-12 w-full gap-2 px-8 text-base transition-transform hover:scale-105 sm:w-auto" asChild>
@@ -46,11 +45,11 @@ export default function Home() {
       </section>
 
       <section className="bg-background py-12 sm:py-20">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl sm:px-6 lg:px-8  px-4 md:px-8 md:py-32">
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 space-y-6 fill-mode-both">
             <h3 className="border-l-4 border-primary pl-4 text-xl font-bold tracking-tight sm:text-2xl">Overview</h3>
-            <p className="text-base leading-loose text-muted-foreground sm:text-lg">
-              Attention-Deficit/Hyperactivity Disorder (ADHD) is a neurodevelopmental disorder characterized by persistent patterns of inattention, hyperactivity, and impulsivity. Despite its prevalence, diagnosis remains largely subjective. This study introduces a robust classification framework using <strong>Electroencephalogram (EEG)</strong> data. By integrating <strong>Dropout Additive Regression Trees (DART)</strong> within the XGBoost architecture and employing <strong>Influence-Balanced Loss (IBL)</strong>, our model addresses key challenges in medical data analysis: overfitting and dataset imbalance.
+            <p className=" leading-loose text-muted-foreground text-sm sm:text-md ">
+              Attention-Deficit/Hyperactivity Disorder (ADHD) is a neurodevelopmental condition characterized by persistent patterns of inattention, hyperactivity, and impulsivity. Despite its prevalence, diagnosis often relies on subjective assessments, highlighting the need for more objective and reliable methods. This study aims to improve the generalization performance of XGBoost for more accurate ADHD classification using <strong>Electroencephalography (EEG)</strong> data. To achieve this, the model integrates <strong>Dropout Meet Multiple Additive Regression Trees (DART)</strong> and <strong>Influence-Balanced Loss (IBL)</strong>. This approach addresses key limitations of traditional XGBoost in EEG classification, including inadequate generalization to highly nonlinear EEG patterns, overfitting in noisy conditions, and decreased performance on class-imbalanced datasets. By overcoming these challenges, the proposed framework enhances the reliability and effectiveness of ADHD detection.
             </p>
           </div>
         </div>

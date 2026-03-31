@@ -37,19 +37,18 @@ DATASET_FILES = {
     "IEEE": {
         "baseline": "ieee_baseline_model.pkl",
         "proposed": "ieee_proposed_model.pkl",
-        "scaler":   "ieee_scaler.pkl",
-        "metrics":  "ieee_metrics.json",       # ← saved by training script
-        "label":    "IEEE (Balanced)",
-        "note":     "Trained on a balanced dataset — equal ADHD and Control subjects.",
+        "scaler": "ieee_scaler.pkl",
+        "metrics": "ieee_metrics.json",
+        "label": "IEEE (Balanced)",
+        "note": "Trained on a balanced dataset of ADHD and Control subjects.",
     },
     "HBN": {
         "baseline": "hbn_baseline_model.pkl",
         "proposed": "hbn_proposed_model.pkl",
-        "scaler":   "hbn_scaler.pkl",
-        "metrics":  "hbn_metrics.json",        # ← saved by training script
-        "label":    "HBN (Imbalanced)",
-        "note":     "Trained on a real-world imbalanced dataset. "
-                    "The Proposed DART-IBL model adapted its parameters for the imbalance.",
+        "scaler": "hbn_scaler.pkl",
+        "metrics": "hbn_metrics.json",
+        "label": "HBN (Imbalanced)",
+        "note": "Trained on a imbalanced dataset of ADHD and Control subjects.",
     },
 }
 
@@ -76,7 +75,8 @@ async def load_models():
 
         # Check all 3 pkl files exist
         missing_pkl = [
-            cfg[k] for k in ("baseline", "proposed", "scaler")
+            cfg[k]
+            for k in ("baseline", "proposed", "scaler")
             if not os.path.exists(cfg[k])
         ]
         if missing_pkl:
@@ -87,7 +87,7 @@ async def load_models():
             # Load models and scaler
             baseline = joblib.load(cfg["baseline"])
             proposed = joblib.load(cfg["proposed"])
-            scaler   = joblib.load(cfg["scaler"])
+            scaler = joblib.load(cfg["scaler"])
 
             # Load metrics from JSON (saved automatically by training script)
             metrics = load_metrics_json(cfg["metrics"])
@@ -103,10 +103,10 @@ async def load_models():
             registry[key] = {
                 "baseline": baseline,
                 "proposed": proposed,
-                "scaler":   scaler,
-                "metrics":  metrics,
-                "label":    cfg["label"],
-                "note":     cfg["note"],
+                "scaler": scaler,
+                "metrics": metrics,
+                "label": cfg["label"],
+                "note": cfg["note"],
             }
             print(f"  ✓  [{key}] Models ready — {cfg['baseline']}, {cfg['proposed']}")
 
@@ -123,47 +123,51 @@ async def load_models():
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+
 def run_prediction(model, X_scaled):
     """Works with both XGBClassifier and raw xgb.Booster."""
     if isinstance(model, xgb.XGBClassifier):
         proba = model.predict_proba(X_scaled)[:, 1]
         preds = model.predict(X_scaled)
     else:  # xgb.Booster (DART-IBL)
-        dmat  = xgb.DMatrix(X_scaled)
+        dmat = xgb.DMatrix(X_scaled)
         proba = model.predict(dmat)
         preds = np.round(proba).astype(int)
     return preds, proba
 
 
-# ── Response schemas ───────────────────────────────────────────────────────────
+# ── Response schemas
+
 
 class PredictionResult(BaseModel):
-    filename:             str
-    dataset:              str
-    dataset_label:        str
-    baseline_prediction:  int    # 0 = Control, 1 = ADHD
-    baseline_label:       str    # "ADHD Detected" or "Control (No ADHD)"
-    baseline_confidence:  float  # % confidence in the predicted label
-    baseline_adhd_epochs: int    # epochs that voted ADHD
-    proposed_prediction:  int
-    proposed_label:       str
-    proposed_confidence:  float
+    filename: str
+    dataset: str
+    dataset_label: str
+    baseline_prediction: int
+    baseline_label: str
+    baseline_confidence: float
+    baseline_adhd_epochs: int
+    proposed_prediction: int
+    proposed_label: str
+    proposed_confidence: float
     proposed_adhd_epochs: int
-    total_epochs:         int
-    metrics:              dict   # from ieee_metrics.json / hbn_metrics.json
+    total_epochs: int
+    metrics: dict
+
 
 class DatasetsResponse(BaseModel):
     available: list
-    details:   dict
+    details: dict
 
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 
+
 @app.get("/")
 def root():
     return {
-        "status":  "running",
-        "loaded":  list(registry.keys()),
+        "status": "running",
+        "loaded": list(registry.keys()),
         "message": "POST /predict?dataset=IEEE  or  POST /predict?dataset=HBN",
     }
 
@@ -173,9 +177,9 @@ def get_datasets():
     """Return which datasets are loaded and their descriptions."""
     details = {
         k: {
-            "label":           v["label"],
-            "note":            v["note"],
-            "metrics_loaded":  v["metrics"] is not None,
+            "label": v["label"],
+            "note": v["note"],
+            "metrics_loaded": v["metrics"] is not None,
         }
         for k, v in registry.items()
     }
@@ -201,11 +205,11 @@ def get_metrics(dataset: str = Query(default="IEEE")):
                 f"Metrics file for '{dataset}' not found. "
                 f"Re-run the training script to generate {dataset.lower()}_metrics.json "
                 f"and copy it to the backend/ folder."
-            )
+            ),
         )
 
     return {
-        "dataset":  dataset,
+        "dataset": dataset,
         "baseline": metrics["baseline"],
         "proposed": metrics["proposed"],
     }
@@ -213,10 +217,10 @@ def get_metrics(dataset: str = Query(default="IEEE")):
 
 @app.post("/predict", response_model=PredictionResult)
 async def predict(
-    file:    UploadFile = File(...),
+    file: UploadFile = File(...),
     dataset: str = Query(
         default="IEEE",
-        description="Which trained model to use: IEEE (balanced) or HBN (imbalanced)"
+        description="Which trained model to use: IEEE (balanced) or HBN (imbalanced)",
     ),
 ):
     """
@@ -229,16 +233,18 @@ async def predict(
     - Confidence:     average ADHD probability across all epochs
     - Metrics:        loaded from {dataset}_metrics.json (saved during training)
     """
-    if not file.filename.endswith(('.mat', '.csv', '.edf')):
-        raise HTTPException(status_code=400, detail="Only .mat, .csv, .edf files supported.")
+    if not file.filename.endswith((".mat", ".csv", ".edf")):
+        raise HTTPException(
+            status_code=400, detail="Only .mat, .csv, .edf files supported."
+        )
 
     if dataset not in registry:
         raise HTTPException(
             status_code=404,
-            detail=f"Dataset '{dataset}' not loaded. Available: {list(registry.keys())}"
+            detail=f"Dataset '{dataset}' not loaded. Available: {list(registry.keys())}",
         )
 
-    entry      = registry[dataset]
+    entry = registry[dataset]
     file_bytes = await file.read()
 
     try:
@@ -250,17 +256,17 @@ async def predict(
 
         # 3. Baseline prediction
         b_preds, b_proba = run_prediction(entry["baseline"], X_scaled)
-        b_adhd  = int(np.sum(b_preds == 1))
-        b_vote  = 1 if b_adhd > len(b_preds) / 2 else 0
-        b_avg   = float(b_proba.mean())
-        b_conf  = round(b_avg * 100 if b_vote == 1 else (1 - b_avg) * 100, 2)
+        b_adhd = int(np.sum(b_preds == 1))
+        b_vote = 1 if b_adhd > len(b_preds) / 2 else 0
+        b_avg = float(b_proba.mean())
+        b_conf = round(b_avg * 100 if b_vote == 1 else (1 - b_avg) * 100, 2)
 
         # 4. Proposed prediction
         p_preds, p_proba = run_prediction(entry["proposed"], X_scaled)
-        p_adhd  = int(np.sum(p_preds == 1))
-        p_vote  = 1 if p_adhd > len(p_preds) / 2 else 0
-        p_avg   = float(p_proba.mean())
-        p_conf  = round(p_avg * 100 if p_vote == 1 else (1 - p_avg) * 100, 2)
+        p_adhd = int(np.sum(p_preds == 1))
+        p_vote = 1 if p_adhd > len(p_preds) / 2 else 0
+        p_avg = float(p_proba.mean())
+        p_conf = round(p_avg * 100 if p_vote == 1 else (1 - p_avg) * 100, 2)
 
         # 5. Attach metrics from JSON (or empty dict if file was missing)
         metrics = entry["metrics"] or {}
