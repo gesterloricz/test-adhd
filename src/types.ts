@@ -32,6 +32,7 @@ export type ClassificationResult = {
 
   total_epochs: number;
   metrics: TrainingMetrics;
+  eeg_data: number[][]; // Preprocessed EEG: [channels, samples]
 };
 
 export type DatasetDetail = {

@@ -357,7 +357,7 @@ function BatchMetricsSection({ baseline, proposed, datasetLabel }: {
                   </div>
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="font-bold">Proposed</span>
+                      <span className="font-bold">Optimized</span>
                       <span className="font-mono font-bold">{pv}%</span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -375,7 +375,7 @@ function BatchMetricsSection({ baseline, proposed, datasetLabel }: {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {[
           { label: "Baseline XGBoost", tp: b_tp, tn: b_tn, fp: b_fp, fn: b_fn },
-          { label: "Proposed XGBoost (DART+IBL)", tp: p_tp, tn: p_tn, fp: p_fp, fn: p_fn },
+          { label: "Optimized XGBoost (DART+IBL)", tp: p_tp, tn: p_tn, fp: p_fp, fn: p_fn },
         ].map(({ label, tp, tn, fp, fn }) => (
           <div key={label} className="rounded-lg border bg-card p-4">
             <div className="mb-3 flex items-center gap-2">

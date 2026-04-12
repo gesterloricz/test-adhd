@@ -2,14 +2,14 @@
   "dataset": "IEEE (Balanced)",
   "save_prefix": "ieee",
   "baseline": {
-    "accuracy": 96.75,
-    "precision": 95.29,
+    "accuracy": 96.88,
+    "precision": 95.49,
     "recall": 99.11,
-    "f1": 97.16,
+    "f1": 97.27,
     "confusion_matrix": [
       [
-        330,
-        22
+        331,
+        21
       ],
       [
         4,

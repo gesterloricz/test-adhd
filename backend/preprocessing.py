@@ -9,9 +9,27 @@ import tempfile
 import os
 
 EEG_CHANNELS = [
-    "Fz", "Cz", "Pz", "C3", "T3", "C4", "T4", "Fp1", "Fp2",
-    "F3", "F4", "F7", "F8", "P3", "P4", "T5", "T6", "O1", "O2",
+    "Fz",
+    "Cz",
+    "Pz",
+    "C3",
+    "T3",
+    "C4",
+    "T4",
+    "Fp1",
+    "Fp2",
+    "F3",
+    "F4",
+    "F7",
+    "F8",
+    "P3",
+    "P4",
+    "T5",
+    "T6",
+    "O1",
+    "O2",
 ]
+
 
 class EEGPreprocessor:
     """
@@ -24,11 +42,11 @@ class EEGPreprocessor:
     def __init__(self, sampling_rate=128):
         self.sampling_rate = sampling_rate
         self.band_ranges = {
-            'delta': (0.5, 4),
-            'theta': (4, 8),
-            'alpha': (8, 13),
-            'beta': (13, 30),
-            'gamma': (30, 50)
+            "delta": (0.5, 4),
+            "theta": (4, 8),
+            "alpha": (8, 13),
+            "beta": (13, 30),
+            "gamma": (30, 50),
         }
 
     def apply_bandpass_filter(self, data, lowcut, highcut, order=5):
@@ -36,7 +54,7 @@ class EEGPreprocessor:
         nyquist = 0.5 * self.sampling_rate
         low = lowcut / nyquist
         high = highcut / nyquist
-        b, a = signal.butter(order, [low, high], btype='band')
+        b, a = signal.butter(order, [low, high], btype="band")
         return signal.filtfilt(b, a, data)
 
     def preprocess_signal(self, raw_signal):
@@ -83,9 +101,9 @@ class FeatureExtractor:
         """Compute Power Spectral Density using FFT"""
         N = len(signal_epoch)
         fft_vals = fft(signal_epoch)
-        fft_vals = fft_vals[:N//2]
+        fft_vals = fft_vals[: N // 2]
         psd = (np.abs(fft_vals) ** 2) / (N * self.sampling_rate)
-        freqs = np.fft.fftfreq(N, 1/self.sampling_rate)[:N//2]
+        freqs = np.fft.fftfreq(N, 1 / self.sampling_rate)[: N // 2]
         return freqs, psd
 
     def compute_band_power(self, signal_epoch, freq_range):
@@ -116,7 +134,7 @@ class FeatureExtractor:
         n_channels = epoch_data.shape[0]
         features = []
 
-        for band_name in ['delta', 'theta', 'alpha', 'beta', 'gamma']:
+        for band_name in ["delta", "theta", "alpha", "beta", "gamma"]:
             freq_range = band_ranges[band_name]
             for ch in range(n_channels):
                 band_power = self.compute_band_power(epoch_data[ch], freq_range)
@@ -126,17 +144,18 @@ class FeatureExtractor:
 
         return np.array(features)
 
+
 def load_eeg_from_bytes(file_bytes: bytes, filename: str) -> np.ndarray:
     """
     Parses the raw file bytes into an EEG numpy array of shape (channels, samples).
     """
     ext = os.path.splitext(filename)[1].lower()
-    
-    if ext == '.mat':
+
+    if ext == ".mat":
         # Load from MAT file
         mat_data = loadmat(io.BytesIO(file_bytes))
-        data_keys = [k for k in mat_data.keys() if not k.startswith('__')]
-        possible_keys = ['v3p', 'data', 'EEG', 'eeg_data', 'signal', 'X', 'eeg']
+        data_keys = [k for k in mat_data.keys() if not k.startswith("__")]
+        possible_keys = ["v3p", "data", "EEG", "eeg_data", "signal", "X", "eeg"]
         eeg_data = None
 
         for key in possible_keys:
@@ -152,11 +171,11 @@ def load_eeg_from_bytes(file_bytes: bytes, filename: str) -> np.ndarray:
 
         eeg_data = np.array(eeg_data, dtype=np.float64)
 
-    elif ext == '.csv':
+    elif ext == ".csv":
         # Assume columns are channels or rows are channels.
         # usually CSV comes as rows=samples, cols=channels
         df = pd.read_csv(io.BytesIO(file_bytes))
-        
+
         # Determine if we need to transpose
         if df.shape[1] == 19 and df.shape[0] > 19:
             eeg_data = df.values.T
@@ -165,29 +184,31 @@ def load_eeg_from_bytes(file_bytes: bytes, filename: str) -> np.ndarray:
         else:
             # Fallback
             eeg_data = df.values.T
-            
-    elif ext == '.edf':
+
+    elif ext == ".edf":
         # MNE requires a file on disk to read EDF
-        with tempfile.NamedTemporaryFile(suffix='.edf', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".edf", delete=False) as tmp:
             tmp.write(file_bytes)
             tmp_path = tmp.name
-        
+
         try:
             raw = mne.io.read_raw_edf(tmp_path, preload=True, verbose=False)
-            
+
             # Select channels if available
             ch_names = raw.ch_names
             # Find intersection
             available_channels = [ch for ch in EEG_CHANNELS if ch in ch_names]
-            
+
             if len(available_channels) == 19:
                 raw.pick_channels(available_channels)
                 # Reorder to match strictly
                 raw.reorder_channels(EEG_CHANNELS)
             else:
-                raw.pick_channels(ch_names[:min(19, len(ch_names))])
-            
-            eeg_data = raw.get_data() * 1e6 # Convert from Volts to microVolts generally
+                raw.pick_channels(ch_names[: min(19, len(ch_names))])
+
+            eeg_data = (
+                raw.get_data() * 1e6
+            )  # Convert from Volts to microVolts generally
         finally:
             os.remove(tmp_path)
     else:
@@ -196,24 +217,29 @@ def load_eeg_from_bytes(file_bytes: bytes, filename: str) -> np.ndarray:
     # Ensure channels x samples format
     if eeg_data.shape[0] > eeg_data.shape[1]:
         eeg_data = eeg_data.T
-        
+
     return eeg_data
 
-def process_file_to_features(file_bytes: bytes, filename: str, sampling_rate: int = 128) -> np.ndarray:
+
+def process_file_to_features(
+    file_bytes: bytes, filename: str, sampling_rate: int = 128
+) -> np.ndarray:
     """
     Take raw file bytes, loads them, preprocesses, and extracts features.
     Returns array of shape (n_epochs, 190).
     """
     # 1. Load Data
     raw_eeg_data = load_eeg_from_bytes(file_bytes, filename)
-    
+
     # 2. Strict Shape Validation
     if raw_eeg_data.shape[0] != 19:
-        raise ValueError(f"CRITICAL ERROR: Invalid file format.\nExpected exactly 19 EEG channels, but found {raw_eeg_data.shape[0]}.\nPlease provide a valid EEG recording formatted for the 10-20 system.")
-    
+        raise ValueError(
+            f"CRITICAL ERROR: Invalid file format.\nExpected exactly 19 EEG channels, but found {raw_eeg_data.shape[0]}.\nPlease provide a valid EEG recording formatted for the 10-20 system."
+        )
+
     preprocessor = EEGPreprocessor(sampling_rate=sampling_rate)
     feature_extractor = FeatureExtractor(sampling_rate=sampling_rate)
-    
+
     # 2. Bandpass filtering (0.5-50 Hz)
     preprocessed = preprocessor.preprocess_signal(raw_eeg_data)
 

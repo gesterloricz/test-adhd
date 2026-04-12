@@ -8,24 +8,24 @@ const PROCESSING_STEPS = [
     id: 1,
     name: "Preprocessing",
     description: "Band-pass Filter & Sub-band Decomposition",
-    duration: 1200,
+    duration: 1000,
   },
   {
     id: 2,
     name: "Feature Extraction",
     description: "Power Spectral Density & Spectral Entropy",
-    duration: 1500,
+    duration: 1000,
   },
   {
     id: 3,
-    name: "Standardization",
+    name: "Normalization",
     description: "Z-score normalization",
     duration: 1000,
   },
   {
     id: 4,
     name: "Classification",
-    description: "Optimized XGBoost (DART + IBL)",
+    description: "Baseline XGBoost vs Optimized XGBoost (DART + IBL)",
     duration: 1300,
   },
   {
@@ -39,9 +39,16 @@ const PROCESSING_STEPS = [
 interface ProcessingStatusPanelProps {
   onComplete: () => void
   isBackendDone?: boolean
+  totalFiles?: number
+  filesProcessed?: number
 }
 
-export default function ProcessingStatusPanel({ onComplete, isBackendDone = false }: ProcessingStatusPanelProps) {
+export default function ProcessingStatusPanel({
+  onComplete,
+  isBackendDone = false,
+  totalFiles = 0,
+  filesProcessed = 0,
+}: ProcessingStatusPanelProps) {
   const [currentStep, setCurrentStep] = useState(0)
 
   useEffect(() => {
@@ -119,7 +126,18 @@ export default function ProcessingStatusPanel({ onComplete, isBackendDone = fals
                       {step.name}
                     </p>
                   </div>
-                  <p className="break-words text-xs text-muted-foreground">{step.description}</p>
+                  <p className="break-words text-xs text-muted-foreground">
+                    {isCurrent && index === 3 && totalFiles > 1 ? (
+                      <>
+                        {step.description} —{' '}
+                        <span className="font-semibold text-foreground">
+                          {filesProcessed} of {totalFiles}
+                        </span>
+                      </>
+                    ) : (
+                      step.description
+                    )}
+                  </p>
                 </div>
 
                 <div className="flex-shrink-0">

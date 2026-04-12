@@ -16,6 +16,7 @@ export default function Demo() {
   const [apiResults, setApiResults] = useState<ClassificationResult[]>([])
   const [isBackendDone, setIsBackendDone] = useState(false)
   const [isAnimationDone, setIsAnimationDone] = useState(false)
+  const [filesProcessed, setFilesProcessed] = useState(0)
   const [selectedDataset, setSelectedDataset] = useState<DatasetKey>("IEEE")
   const [availableDatasets, setAvailableDatasets] = useState<DatasetKey[]>([])
   const [datasetDetails, setDatasetDetails] = useState<Record<string, DatasetDetail>>({})
@@ -46,10 +47,12 @@ export default function Demo() {
     setIsProcessing(true)
     setIsBackendDone(false)
     setIsAnimationDone(false)
+    setFilesProcessed(0)
 
     const collected: ClassificationResult[] = []
 
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
       const form = new FormData()
       form.append('file', file)
 
@@ -80,7 +83,9 @@ export default function Demo() {
           proposed_adhd_epochs: d.proposed_adhd_epochs,
           total_epochs: d.total_epochs,
           metrics: d.metrics,
+          eeg_data: d.eeg_data,
         })
+        setFilesProcessed(i + 1)
       } catch {
         alert(`Network error processing ${file.name}. Is the backend running?`)
       }
@@ -120,6 +125,8 @@ export default function Demo() {
         <ProcessingStatusPanel
           isBackendDone={isBackendDone}
           onComplete={() => setIsAnimationDone(true)}
+          totalFiles={files.length}
+          filesProcessed={filesProcessed}
         />
       )
     }
@@ -160,13 +167,13 @@ export default function Demo() {
                 </p>
               </div>
               <div className="relative grid grid-cols-1 gap-8 md:grid-cols-3">
-                <div className="absolute left-[16%] right-[16%] top-8 z-0 hidden h-0.5 bg-gradient-to-r from-muted via-primary/20 to-muted md:block" />
+                <div className="absolute left-[16%] right-[16%] top-8 z-0 hidden h-0.5 bg-linear-to-r from-muted via-primary/20 to-muted md:block" />
                 <StepIcon delay={100} Icon={Upload} title="1. Select Model & Upload"
                   desc="Choose IEEE or HBN model set. Drop any .mat file with 19-channel EEG data." />
                 <StepIcon delay={300} Icon={Filter} title="2. Preprocessing"
                   desc="Bandpass filter → epoch segmentation → 190-dim PSD + entropy features → scaled with matching scaler." />
                 <StepIcon delay={500} Icon={Brain} title="3. Classification"
-                  desc="Baseline XGBoost and Proposed DART-IBL both classify. Results shown side-by-side." />
+                  desc="Baseline XGBoost and Optimized XGBoost DART-IBL both classify. Results shown side-by-side." />
               </div>
             </div>
           </div>

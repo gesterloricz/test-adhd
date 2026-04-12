@@ -2,18 +2,18 @@
   "dataset": "HBN (Imbalanced)",
   "save_prefix": "hbn",
   "baseline": {
-    "accuracy": 80.54,
-    "precision": 74.4,
-    "recall": 63.09,
-    "f1": 68.28,
+    "accuracy": 80.42,
+    "precision": 74.18,
+    "recall": 62.92,
+    "f1": 68.09,
     "confusion_matrix": [
       [
-        18192,
-        2200
+        18172,
+        2220
       ],
       [
-        3741,
-        6394
+        3758,
+        6377
       ]
     ]
   },

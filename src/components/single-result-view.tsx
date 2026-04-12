@@ -2,7 +2,7 @@ import { useState } from "react"
 import {
   CheckCircle2, AlertTriangle, RotateCcw, FileText,
   BarChart3, ArrowUpRight, ArrowDownRight,
-  Loader2, Info,
+  Loader2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import type { ClassificationResult, ModelMetricEntry } from "../types"
 import { cn } from "@/lib/utils"
-import { data } from "react-router-dom"
+import EEGViewer from "./eeg-viewer"
 
 const METRIC_KEYS = [
   { key: "accuracy" as const, label: "Accuracy" },
@@ -157,7 +157,7 @@ function TrainingMetricsSection({
                   </div>
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="font-bold">Proposed</span>
+                      <span className="font-bold">Optimized</span>
                       <span className="font-mono font-bold">{pv}%</span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -175,7 +175,7 @@ function TrainingMetricsSection({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {[
           { label: "Baseline XGBoost", stats: baseline },
-          { label: "Proposed XGBoost (DART+IBL)", stats: proposed },
+          { label: "Optimized XGBoost (DART+IBL)", stats: proposed },
         ].map(({ label, stats }) => {
           const [[tn, fp], [fn, tp]] = stats.confusion_matrix
           return (
@@ -290,7 +290,7 @@ export default function SingleResultView({
             filename={result.filename}
           />
           <PredictionCard
-            title="Proposed Model" description="Optimized XGBoost (DART + IBL)"
+            title="Optimized Model" description="Optimized XGBoost (DART + IBL)"
             isBaseline={false}
             label={result.proposed_label}
             confidence={result.proposed_confidence}
@@ -301,7 +301,17 @@ export default function SingleResultView({
         </div>
       </div>
 
-      {/* ── SECTION 2: Training metrics — only shown when showMetrics=true ── */}
+      {/* ── SECTION 2: EEG Viewer ── */}
+      {result.eeg_data && result.eeg_data.length > 0 && (
+        <div>
+          <p className="mb-3 text-sm font-semibold text-foreground">
+            EEG Waveform
+          </p>
+          <EEGViewer eegData={result.eeg_data} samplingRate={128} downsample={4} fileName={result.filename} />
+        </div>
+      )}
+
+      {/* ── SECTION 3: Training metrics — only shown when showMetrics=true ── */}
       {showMetrics && result.metrics?.baseline && (
         <div>
           <p className="mb-3 text-sm font-semibold text-foreground">

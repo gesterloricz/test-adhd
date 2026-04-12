@@ -21,7 +21,7 @@ import numpy as np
 from pydantic import BaseModel
 import xgboost as xgb
 
-from preprocessing import process_file_to_features
+from preprocessing import process_file_to_features, EEGPreprocessor, load_eeg_from_bytes
 
 app = FastAPI(title="ADHD Classification API")
 app.add_middleware(
@@ -153,6 +153,7 @@ class PredictionResult(BaseModel):
     proposed_adhd_epochs: int
     total_epochs: int
     metrics: dict
+    eeg_data: list  # Preprocessed EEG data: list of [channels, samples]
 
 
 class DatasetsResponse(BaseModel):
@@ -248,27 +249,42 @@ async def predict(
     file_bytes = await file.read()
 
     try:
-        # 1. Preprocess + extract features → (n_epochs, 190)
+        # 1. Load raw EEG data for visualization
+        raw_eeg_data = load_eeg_from_bytes(file_bytes, file.filename)
+
+        if raw_eeg_data.shape[0] != 19:
+            raise ValueError(
+                f"CRITICAL ERROR: Invalid file format.\nExpected exactly 19 EEG channels, but found {raw_eeg_data.shape[0]}.\nPlease provide a valid EEG recording formatted for the 10-20 system."
+            )
+
+        # Apply preprocessing to get filtered EEG
+        preprocessor = EEGPreprocessor(sampling_rate=128)
+        filtered_eeg = preprocessor.preprocess_signal(raw_eeg_data)
+
+        # Convert to list for JSON serialization (channels x samples)
+        eeg_data_list = filtered_eeg.tolist()
+
+        # 2. Preprocess + extract features → (n_epochs, 190)
         X = process_file_to_features(file_bytes, file.filename, sampling_rate=128)
 
-        # 2. Scale using THIS dataset's scaler (fitted on same training data)
+        # 3. Scale using THIS dataset's scaler (fitted on same training data)
         X_scaled = entry["scaler"].transform(X)
 
-        # 3. Baseline prediction
+        # 4. Baseline prediction
         b_preds, b_proba = run_prediction(entry["baseline"], X_scaled)
         b_adhd = int(np.sum(b_preds == 1))
         b_vote = 1 if b_adhd > len(b_preds) / 2 else 0
         b_avg = float(b_proba.mean())
         b_conf = round(b_avg * 100 if b_vote == 1 else (1 - b_avg) * 100, 2)
 
-        # 4. Proposed prediction
+        # 5. Proposed prediction
         p_preds, p_proba = run_prediction(entry["proposed"], X_scaled)
         p_adhd = int(np.sum(p_preds == 1))
         p_vote = 1 if p_adhd > len(p_preds) / 2 else 0
         p_avg = float(p_proba.mean())
         p_conf = round(p_avg * 100 if p_vote == 1 else (1 - p_avg) * 100, 2)
 
-        # 5. Attach metrics from JSON (or empty dict if file was missing)
+        # 6. Attach metrics from JSON (or empty dict if file was missing)
         metrics = entry["metrics"] or {}
 
         return PredictionResult(
@@ -285,6 +301,7 @@ async def predict(
             proposed_adhd_epochs=p_adhd,
             total_epochs=len(X),
             metrics=metrics,
+            eeg_data=eeg_data_list,
         )
 
     except ValueError as e:
