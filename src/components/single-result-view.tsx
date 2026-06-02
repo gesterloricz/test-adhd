@@ -218,6 +218,7 @@ interface Props {
   onNewAnalysis?: () => void
   standalone?: boolean
   showMetrics?: boolean  // false in batch mode — metrics shown once at batch level
+  suppressPrintSections?: boolean  // true in batch mode — batch has its own print header/footer
 }
 
 export default function SingleResultView({
@@ -225,6 +226,7 @@ export default function SingleResultView({
   onNewAnalysis,
   standalone = false,
   showMetrics = true,
+  suppressPrintSections = false,
 }: Props) {
   const [isRerunning, setIsRerunning] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -238,7 +240,7 @@ export default function SingleResultView({
     <div className={cn("w-full space-y-6 transition-opacity print:space-y-8 print:bg-white print:text-black", isRerunning && "opacity-60 pointer-events-none")}>
 
       {/* ── PRINT-ONLY HEADER ── */}
-      <div className="hidden print:block space-y-4 pb-6 border-b-2 border-black">
+      {!suppressPrintSections && <div className="hidden print:block space-y-4 pb-6 border-b-2 border-black">
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-3xl font-bold text-black tracking-tight">Clinical EEG Analysis Report</h1>
@@ -259,7 +261,7 @@ export default function SingleResultView({
             <p><strong>Dataset Ref:</strong> {result.dataset_label}</p>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* File header */}
       {standalone && (
@@ -376,7 +378,7 @@ export default function SingleResultView({
       )}
 
       {/* ── PRINT-ONLY FOOTER ── */}
-      <div className="hidden print:block pt-12 space-y-12 page-break-inside-avoid">
+      {!suppressPrintSections && <div className="hidden print:block pt-12 space-y-12 page-break-inside-avoid">
         <div className="space-y-2">
           <p className="font-bold text-black">Clinical Notes & Remarks:</p>
           <div className="h-32 w-full border border-gray-300 rounded p-2"></div>
@@ -399,7 +401,7 @@ export default function SingleResultView({
             It is intended to assist and provide objective data metrics, but should not replace formal clinical diagnosis by a licensed healthcare professional.
           </p>
         </div>
-      </div>
+      </div>}
 
     </div>
   )

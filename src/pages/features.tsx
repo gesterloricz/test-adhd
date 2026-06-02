@@ -1,5 +1,5 @@
 import {
-  Activity, Settings, BarChart3, FileText, Waves, Database
+  Activity, Settings, BarChart3, Waves, Database
 } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 

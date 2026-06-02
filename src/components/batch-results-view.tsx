@@ -1,8 +1,8 @@
 import { useState } from "react"
 import {
   Users, RotateCcw, Loader2, ChevronDown, ChevronUp,
-  AlertTriangle, CheckCircle2, FileText, Brain, Info,
-  Activity, BarChart3, ArrowUpRight, ArrowDownRight,
+  AlertTriangle, CheckCircle2, FileText, Brain,
+  Activity, BarChart3, ArrowUpRight, ArrowDownRight, Printer,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -64,15 +64,55 @@ export default function BatchResultsView({ results, onNewAnalysis }: Props) {
     setExpandedFile(prev => prev === filename ? null : filename)
 
   return (
-    <div className={cn("w-full space-y-6 transition-opacity", isRerunning && "opacity-60 pointer-events-none")}>
+    <div className={cn("w-full space-y-6 transition-opacity print:space-y-8 print:bg-white print:text-black", isRerunning && "opacity-60 pointer-events-none")}>
+
+      {/* ── PRINT-ONLY BATCH HEADER ── */}
+      <div className="hidden print:block space-y-4 pb-6 border-b-2 border-black">
+        <div className="flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-bold text-black tracking-tight">Batch EEG Analysis Report</h1>
+            <p className="font-medium mt-1 text-gray-600">Automated ADHD Classification System — Multi-Subject Analysis</p>
+          </div>
+          <div className="text-right text-sm text-gray-600">
+            <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
+            <p><strong>Time:</strong> {new Date().toLocaleTimeString()}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-4 gap-4 pt-4 text-center text-sm">
+          <div className="border border-gray-300 rounded p-3">
+            <p className="text-2xl font-bold">{total}</p>
+            <p className="text-xs text-gray-500">Total Files</p>
+          </div>
+          <div className="border border-gray-300 rounded p-3">
+            <p className="text-2xl font-bold text-orange-600">{adhdCount}</p>
+            <p className="text-xs text-gray-500">ADHD Detected</p>
+          </div>
+          <div className="border border-gray-300 rounded p-3">
+            <p className="text-2xl font-bold text-emerald-600">{controlCount}</p>
+            <p className="text-xs text-gray-500">Control</p>
+          </div>
+          <div className="border border-gray-300 rounded p-3">
+            <p className="text-2xl font-bold text-blue-600">{agreementPct}%</p>
+            <p className="text-xs text-gray-500">Model Agreement</p>
+          </div>
+        </div>
+        <div className="pt-2 text-sm">
+          <p><strong>Dataset Reference:</strong> {datasetLabel}</p>
+        </div>
+      </div>
 
       {/* ── Summary cards ─────────────────────────────────────────────────── */}
-      <Card className="border-2 border-primary/10 bg-card shadow-sm">
+      <Card className="border-2 border-primary/10 bg-card shadow-sm print:hidden">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Brain className="h-5 w-5 text-primary" />
             Batch Classification Results
           </CardTitle>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="h-8" onClick={() => window.print()}>
+              <Printer className="mr-2 h-3.5 w-3.5" />
+              Print Report
+            </Button>
           <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
             <AlertDialogTrigger asChild>
               <Button size="sm" variant="outline" className="h-8" disabled={isRerunning}>
@@ -93,6 +133,7 @@ export default function BatchResultsView({ results, onNewAnalysis }: Props) {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -124,7 +165,7 @@ export default function BatchResultsView({ results, onNewAnalysis }: Props) {
       </Card>
 
       {/* ── File list ─────────────────────────────────────────────────────── */}
-      <Card className="border bg-card shadow-sm">
+      <Card className="border bg-card shadow-sm print:hidden">
         <CardHeader className="pb-3">
           <div className="flex flex-wrap items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -237,17 +278,19 @@ export default function BatchResultsView({ results, onNewAnalysis }: Props) {
       </Card>
 
       {/* ── Group summaries ───────────────────────────────────────────────── */}
-      {adhdCount > 0 && (
-        <GroupSummary title="ADHD Detected Files" color="orange" files={adhdResults} />
-      )}
-      {controlCount > 0 && (
-        <GroupSummary title="Control (No ADHD) Files" color="emerald" files={controlResults} />
-      )}
+      <div className="print:hidden">
+        {adhdCount > 0 && (
+          <GroupSummary title="ADHD Detected Files" color="orange" files={adhdResults} />
+        )}
+        {controlCount > 0 && (
+          <GroupSummary title="Control (No ADHD) Files" color="emerald" files={controlResults} />
+        )}
+      </div>
 
       {/* ── Model training metrics — shown ONCE for the whole batch ───────── */}
       {sharedMetrics?.baseline && (
         <div>
-          <p className="mb-3 text-sm font-semibold text-foreground">
+          <p className="mb-3 text-sm font-semibold text-foreground print:font-bold print:text-black">
             Model training performance on {datasetLabel}
           </p>
           <BatchMetricsSection
@@ -257,6 +300,20 @@ export default function BatchResultsView({ results, onNewAnalysis }: Props) {
           />
         </div>
       )}
+
+      {/* ── PRINT-ONLY: each file as its own full Clinical EEG Analysis Report page ── */}
+      <div className="hidden print:block">
+        {results.map((result) => (
+          <div key={result.filename} className="print:break-before-page">
+            <SingleResultView
+              result={result}
+              standalone={false}
+              showMetrics={false}
+              suppressPrintSections={false}
+            />
+          </div>
+        ))}
+      </div>
 
     </div>
   )

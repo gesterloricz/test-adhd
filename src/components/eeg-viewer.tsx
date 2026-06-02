@@ -37,6 +37,19 @@ export default function EEGViewer({
     return () => clearTimeout(timer)
   }, [eegData])
 
+  // Normalize each channel (z-score like the Python script)
+  const normalizedData = useMemo(() => {
+    if (!eegData || eegData.length === 0) return []
+    return eegData.map(channel => {
+      const mean = channel.reduce((a, b) => a + b, 0) / channel.length
+      const std = Math.sqrt(channel.reduce((a, b) => a + (b - mean) ** 2, 0) / channel.length)
+      if (std > 0) {
+        return channel.map(val => (val - mean) / std)
+      }
+      return channel.map(val => val - mean)
+    })
+  }, [eegData])
+
   // Validate data
   if (!eegData || eegData.length === 0 || eegData[0].length === 0) {
     return (
@@ -51,18 +64,6 @@ export default function EEGViewer({
   const numChannels = eegData.length
   const numSamples = eegData[0].length
   const duration = numSamples / samplingRate
-
-  // Normalize each channel (z-score like the Python script)
-  const normalizedData = useMemo(() => {
-    return eegData.map(channel => {
-      const mean = channel.reduce((a, b) => a + b, 0) / channel.length
-      const std = Math.sqrt(channel.reduce((a, b) => a + (b - mean) ** 2, 0) / channel.length)
-      if (std > 0) {
-        return channel.map(val => (val - mean) / std)
-      }
-      return channel.map(val => val - mean)
-    })
-  }, [eegData])
 
   // SVG dimensions - made more compact and responsive to zoom
   const labelWidth = 35
@@ -83,7 +84,7 @@ export default function EEGViewer({
   }
 
   const majorInterval = getTimeIntervals()
-  const timePoints = []
+  const timePoints: number[] = []
   for (let t = 0; t <= duration; t += majorInterval) {
     timePoints.push(t)
   }
